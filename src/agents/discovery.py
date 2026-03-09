@@ -1,15 +1,17 @@
 """
 Funding Intelligence Agent — Discovery Agent.
 
-DuckDuckGo 검색 (기본) → httpx fetch → Groq LLM parse.
+DuckDuckGo + Tavily 병렬 검색 → httpx fetch → Groq LLM parse.
 사실만 추출, deadline 추측 금지.
 """
 
 from __future__ import annotations
 
 import json
+import re
 from datetime import datetime, timezone
 from typing import Any
+from urllib.parse import urlparse
 
 import httpx
 import structlog
@@ -27,53 +29,88 @@ from src.core.types import (
 logger = structlog.get_logger()
 
 # ============================================================
-# 카테고리별 검색 쿼리 템플릿
+# 카테고리별 검색 쿼리 (간결하게 — DDG 키워드 과다 패널티 방지)
 # ============================================================
 CATEGORY_QUERIES: dict[str, list[str]] = {
     "grant": [
-        "{query} crypto blockchain grant program 2025 2026",
-        "{query} web3 grant funding application open",
+        "{query} grant program apply 2026",
+        "{query} crypto web3 grants open",
     ],
     "accelerator": [
-        "{query} crypto blockchain accelerator program 2025 2026",
-        "{query} web3 accelerator cohort application",
+        "{query} accelerator program apply 2026",
+        "{query} crypto web3 accelerator cohort open",
     ],
     "vc_cohort": [
-        "{query} crypto VC cohort seed investment program",
-        "{query} blockchain venture fund open application",
+        "{query} VC cohort seed funding apply",
+        "{query} crypto venture fund open application",
     ],
     "ecosystem_builder": [
-        "{query} ecosystem builder program crypto blockchain",
-        "{query} developer support program web3 grant",
+        "{query} ecosystem builder program apply",
+        "{query} developer program web3 grants",
     ],
 }
 
-
 # ============================================================
-# LLM 프롬프트
+# non-funding 도메인 필터 (검색 결과에서 제거)
 # ============================================================
-PARSE_PROMPT = """You are a data extraction agent. Extract funding opportunities from the webpage content below.
-
-RULES (STRICT):
-- Extract ONLY explicitly stated facts
-- NEVER guess or infer deadlines — if not explicitly stated, set deadline to null
-- NEVER fabricate URLs — if no application URL is found, set apply_url to null
-- Extract the EXACT budget/funding amount as written
-- If status is not explicitly stated, set to "unknown"
-
-For each opportunity found, return a JSON array of objects with these fields:
-{
-  "organization": "Name of the funding organization",
-  "program": "Name of the specific program",
-  "category": "One of: grant, accelerator, vc_cohort, ecosystem_builder",
-  "status": "One of: open, rolling, deadline, upcoming, closed, unknown",
-  "deadline": "YYYY-MM-DD or null if not explicitly stated",
-  "budget": "Exact text as stated (e.g., '$50K-$500K') or null",
-  "apply_url": "Direct application URL or null",
-  "description": "One sentence summary"
+BLOCKED_DOMAINS = {
+    "wikipedia.org", "namu.wiki", "namu.com",
+    "youtube.com", "youtu.be",
+    "reddit.com", "twitter.com", "x.com",
+    "facebook.com", "instagram.com",
+    "tiktok.com", "linkedin.com",
+    "medium.com",  # 블로그 → 직접 URL 지정 시에만 허용
+    "blog.naver.com", "tistory.com",
+    "chatgpt.com", "openai.com",
 }
 
-Return ONLY a valid JSON array. If no opportunities found, return [].
+
+def _is_valid_funding_url(url: str) -> bool:
+    """검색 결과 URL 필터링: non-funding 도메인 제거."""
+    try:
+        domain = urlparse(url).netloc.lower().replace("www.", "")
+        for blocked in BLOCKED_DOMAINS:
+            if blocked in domain:
+                return False
+        return True
+    except Exception:
+        return False
+
+
+# ============================================================
+# LLM 프롬프트 (개선됨)
+# ============================================================
+PARSE_PROMPT = """You are a funding opportunity extraction agent. Extract ALL funding opportunities from the webpage content below.
+
+EXTRACTION RULES:
+1. Extract ONLY facts explicitly stated in the content
+2. NEVER guess deadlines — if not explicitly stated, set deadline to null
+3. For apply_url: Search the "LINKS FOUND IN PAGE" section at the bottom for application links. Look for URLs containing "apply", "submit", "form", "typeform", "airtable", "grant", or "application"
+4. Extract the EXACT budget/funding amount as written
+5. For focus_areas: Extract the organization's focus sectors (e.g., "DeFi", "Infrastructure", "Gaming", "AI", "ZK")
+
+OUTPUT FORMAT — Return ONLY a valid JSON array:
+[
+  {
+    "organization": "Funding organization name",
+    "program": "Specific program name",
+    "category": "grant | accelerator | vc_cohort | ecosystem_builder",
+    "status": "open | rolling | deadline | upcoming | closed | unknown",
+    "deadline": "YYYY-MM-DD or null",
+    "budget": "Exact amount text (e.g., '$50K-$500K') or null",
+    "apply_url": "URL from LINKS section or content, or null if truly not found",
+    "description": "One sentence summary of the program",
+    "focus_areas": ["sector1", "sector2"]
+  }
+]
+
+EXAMPLES of valid apply_url:
+- "https://esp.ethereum.foundation/applicants"
+- "https://airtable.com/shrXYZ"
+- "https://form.typeform.com/to/abc123"
+- "https://solana.org/grants#apply"
+
+If no opportunities found, return [].
 
 WEBPAGE CONTENT:
 """
@@ -122,7 +159,7 @@ class DiscoveryAgent(BaseAgent):
                     fetched_urls.append(url)
             except Exception as e:
                 self.log.warning("discovery.fetch_failed", url=url, error=str(e))
-                continue  # 개별 URL 실패 시 skip
+                continue
 
         output = DiscoveryOutput(
             raw_opportunities=all_opportunities,
@@ -138,55 +175,87 @@ class DiscoveryAgent(BaseAgent):
 
         return AgentResult(success=True, data=output.__dict__)
 
+    # ============================================================
+    # 검색
+    # ============================================================
+
     async def _search(
         self,
         query: str,
         category: ProgramCategory | None,
         sources: list[str],
     ) -> list[str]:
-        """검색 → URL 목록 반환. DuckDuckGo 기본, Tavily 폴백."""
-        # 직접 URL이 주어진 경우
+        """DDG + Tavily 병렬 검색 → 합친 URL 목록."""
         if sources:
             return sources
 
-        provider = self.config.search_provider
+        all_urls: list[str] = []
+        seen: set[str] = set()
 
-        if provider == "duckduckgo":
-            return await self._search_ddg(query, category)
-        elif provider == "tavily":
-            return await self._search_tavily(query, category)
-        else:
-            self.log.warning("discovery.unknown_provider", provider=provider)
-            return await self._search_ddg(query, category)
+        def _add_urls(urls: list[str]) -> None:
+            for u in urls:
+                if u not in seen and _is_valid_funding_url(u):
+                    seen.add(u)
+                    all_urls.append(u)
+
+        # DDG (항상 시도)
+        ddg_urls = await self._search_ddg(query, category)
+        _add_urls(ddg_urls)
+
+        # Tavily (키가 있으면 같이 사용)
+        if self.config.tavily_key:
+            tavily_urls = await self._search_tavily(query, category)
+            _add_urls(tavily_urls)
+
+        self.log.info(
+            "discovery.search_combined",
+            ddg=len(ddg_urls),
+            tavily=len(all_urls) - len(ddg_urls),
+            total=len(all_urls),
+        )
+
+        return all_urls
 
     async def _search_ddg(
         self, query: str, category: ProgramCategory | None
     ) -> list[str]:
-        """DuckDuckGo 검색 (API 키 불필요)."""
+        """DuckDuckGo 검색. region=wt-wt (worldwide)."""
         try:
             from duckduckgo_search import DDGS
 
             cat_key = category.value if category else "grant"
             queries = CATEGORY_QUERIES.get(cat_key, CATEGORY_QUERIES["grant"])
-            search_query = queries[0].format(query=query)
+
+            all_urls: list[str] = []
+            seen: set[str] = set()
 
             with DDGS() as ddgs:
-                results = list(ddgs.text(search_query, max_results=7))
+                # 카테고리별 쿼리 2개 모두 실행
+                for q_template in queries:
+                    search_query = q_template.format(query=query)
+                    results = list(ddgs.text(
+                        search_query,
+                        region="wt-wt",  # worldwide — 한국어 locale 무시
+                        max_results=5,
+                    ))
+                    for r in results:
+                        href = r.get("href", "")
+                        if href and href not in seen:
+                            seen.add(href)
+                            all_urls.append(href)
 
-            urls = [r["href"] for r in results if r.get("href")]
-            self.log.info("discovery.ddg_search_done", urls_found=len(urls))
-            return urls
+            self.log.info("discovery.ddg_done", urls_found=len(all_urls))
+            return all_urls
 
         except Exception as e:
-            self.log.error("discovery.ddg_search_error", error=str(e))
+            self.log.error("discovery.ddg_error", error=str(e))
             return []
 
     async def _search_tavily(
         self, query: str, category: ProgramCategory | None
     ) -> list[str]:
-        """Tavily API 검색 (폴백)."""
+        """Tavily API 검색."""
         if not self.config.tavily_key:
-            self.log.warning("discovery.no_tavily_key")
             return []
 
         try:
@@ -205,25 +274,48 @@ class DiscoveryAgent(BaseAgent):
             )
 
             urls = [r["url"] for r in response.get("results", [])]
-            self.log.info("discovery.tavily_search_done", urls_found=len(urls))
+            self.log.info("discovery.tavily_done", urls_found=len(urls))
             return urls
 
         except Exception as e:
-            self.log.error("discovery.tavily_search_error", error=str(e))
+            self.log.error("discovery.tavily_error", error=str(e))
             return []
 
+    # ============================================================
+    # Fetch
+    # ============================================================
+
     async def _fetch_page(self, url: str) -> str | None:
-        """URL에서 텍스트 콘텐츠 추출."""
+        """URL에서 텍스트 + 링크 추출."""
         try:
             async with httpx.AsyncClient(
                 timeout=15.0,
                 follow_redirects=True,
-                headers={"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) FundingBot/1.0"},
+                headers={
+                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                                  "AppleWebKit/537.36 (KHTML, like Gecko) "
+                                  "Chrome/120.0.0.0 Safari/537.36"
+                },
             ) as client:
                 resp = await client.get(url)
                 resp.raise_for_status()
 
             soup = BeautifulSoup(resp.text, "lxml")
+
+            # <a href> 링크 추출 (태그 제거 전)
+            links: list[str] = []
+            apply_keywords = [
+                "apply", "submit", "application", "register",
+                "form", "typeform", "airtable", "grant",
+                "funding", "program",
+            ]
+            for a_tag in soup.find_all("a", href=True):
+                href = a_tag["href"]
+                link_text = a_tag.get_text(strip=True)
+                if href.startswith("http"):
+                    combined = (href + " " + link_text).lower()
+                    if any(kw in combined for kw in apply_keywords):
+                        links.append(f"{link_text}: {href}")
 
             # 불필요한 태그 제거
             for tag in soup(["script", "style", "nav", "footer", "header"]):
@@ -231,9 +323,13 @@ class DiscoveryAgent(BaseAgent):
 
             text = soup.get_text(separator="\n", strip=True)
 
-            # 너무 긴 경우 잘라냄 (LLM 컨텍스트 제한)
-            if len(text) > 8000:
-                text = text[:8000]
+            # 추출된 링크 추가 (LLM이 apply_url로 사용)
+            if links:
+                text += "\n\nLINKS FOUND IN PAGE:\n" + "\n".join(links[:20])
+
+            # 12000자로 확대 (하단 CTA 보존)
+            if len(text) > 12000:
+                text = text[:12000]
 
             return text if len(text) > 100 else None
 
@@ -241,10 +337,14 @@ class DiscoveryAgent(BaseAgent):
             self.log.warning("discovery.fetch_error", url=url, error=str(e))
             return None
 
+    # ============================================================
+    # LLM Parse
+    # ============================================================
+
     async def _parse_opportunities(
         self, content: str, source_url: str
     ) -> list[dict]:
-        """LLM으로 페이지 콘텐츠에서 기회 추출. Groq 기본, Anthropic 폴백."""
+        """LLM으로 기회 추출. Groq 기본, Anthropic 폴백."""
         provider = self.config.llm_provider
 
         if provider == "groq":
@@ -275,7 +375,7 @@ class DiscoveryAgent(BaseAgent):
                         "content": PARSE_PROMPT + content,
                     }
                 ],
-                max_tokens=2000,
+                max_tokens=3000,
                 temperature=0.1,
             )
 
@@ -301,7 +401,7 @@ class DiscoveryAgent(BaseAgent):
 
             response = client.messages.create(
                 model=self.config.llm_model_fast,
-                max_tokens=2000,
+                max_tokens=3000,
                 messages=[
                     {
                         "role": "user",
@@ -318,31 +418,54 @@ class DiscoveryAgent(BaseAgent):
             return []
 
     def _extract_json(self, raw_text: str, source_url: str) -> list[dict]:
-        """LLM 응답에서 JSON 배열 추출."""
+        """LLM 응답에서 JSON 배열 추출 (강화됨)."""
         try:
-            # markdown 코드블록 안에 있을 수 있음
-            if "```" in raw_text:
-                raw_text = raw_text.split("```")[1]
-                if raw_text.startswith("json"):
-                    raw_text = raw_text[4:]
-                raw_text = raw_text.strip()
+            text = raw_text
 
-            opportunities = json.loads(raw_text)
+            # markdown 코드블록 추출
+            if "```" in text:
+                blocks = text.split("```")
+                for block in blocks[1:]:
+                    cleaned = block
+                    if cleaned.startswith("json"):
+                        cleaned = cleaned[4:]
+                    cleaned = cleaned.strip()
+                    if cleaned.startswith("["):
+                        text = cleaned
+                        break
+
+            # JSON 배열 시작점 찾기
+            start = text.find("[")
+            end = text.rfind("]")
+            if start != -1 and end != -1 and end > start:
+                text = text[start:end + 1]
+
+            opportunities = json.loads(text)
 
             if not isinstance(opportunities, list):
                 return []
 
-            # source_url 추가
+            # source_url 추가 + 유효성 검사
+            valid: list[dict] = []
             for opp in opportunities:
+                if not isinstance(opp, dict):
+                    continue
+                if not opp.get("organization") or not opp.get("program"):
+                    continue
                 opp["source_url"] = source_url
+                # apply_url 검증: "example.com" 같은 가짜 URL 제거
+                apply = opp.get("apply_url", "")
+                if apply and ("example.com" in apply or not apply.startswith("http")):
+                    opp["apply_url"] = None
+                valid.append(opp)
 
             self.log.info(
                 "discovery.parsed",
                 url=source_url,
-                count=len(opportunities),
+                count=len(valid),
             )
-            return opportunities
+            return valid
 
         except (json.JSONDecodeError, IndexError) as e:
-            self.log.warning("discovery.parse_error", error=str(e))
+            self.log.warning("discovery.parse_error", error=str(e), raw=raw_text[:200])
             return []

@@ -106,7 +106,7 @@ def calculate_fit_score(
     opp_tag_set = set(t.lower() for t in opp_tags)
 
     if not opp_tag_set or not all_user_tags:
-        return 0.3  # 태그 없으면 기본값
+        return 0.15  # 데이터 없음 = 낮은 신뢰
 
     # Jaccard-like overlap
     intersection = opp_tag_set & all_user_tags

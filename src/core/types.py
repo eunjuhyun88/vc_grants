@@ -329,12 +329,27 @@ def generate_id(prefix: str = "") -> str:
 
 
 def normalize_org_name(name: str) -> str:
-    """조직명 정규화."""
+    """조직명 정규화. 관사 제거, 접미사 제거, 공백 정규화."""
     name = name.lower().strip()
     name = re.sub(r'\s+', ' ', name)
-    for suffix in ['foundation', 'labs', 'protocol', 'network', 'dao', 'inc', 'corp', 'co']:
+    # 관사 제거 ("The Ethereum Foundation" → "ethereum foundation")
+    name = re.sub(r'^(the|a|an)\s+', '', name)
+    # 접미사 제거
+    for suffix in ['foundation', 'labs', 'protocol', 'network', 'dao', 'inc', 'corp', 'co', 'ltd']:
         name = re.sub(rf'\s+{suffix}$', '', name)
-    return name
+    return name.strip()
+
+
+def extract_domain(url: str) -> str | None:
+    """URL에서 도메인 추출 (www. 제거). dedup용."""
+    if not url:
+        return None
+    try:
+        parsed = urlparse(url)
+        domain = parsed.netloc.lower().replace("www.", "")
+        return domain if domain else None
+    except Exception:
+        return None
 
 
 def normalize_url(url: str) -> str:

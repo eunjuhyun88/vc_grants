@@ -162,12 +162,20 @@ class VerificationAgent(BaseAgent):
                 "confidence": obs.confidence,
             })
 
+        # source_chain에 검증된 URL 추가
+        current_chain = list(opp.source_chain) if opp.source_chain else []
+        for obs_data in observations:
+            obs_url = obs_data["source_url"]
+            if obs_url and obs_url not in current_chain:
+                current_chain.append(obs_url)
+
         # Opportunity 업데이트
         await self.store.update_opportunity(
             opp_id,
             output_status=output_status,
             fact_confidence=max_confidence,
             source_tier=best_tier,
+            source_chain=current_chain,
         )
 
         output = VerificationOutput(

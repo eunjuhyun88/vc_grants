@@ -35,6 +35,7 @@ from src.core.types import (
     Program,
     ProgramCategory,
     VerificationInput,
+    extract_domain,
     generate_id,
     normalize_org_name,
     normalize_url,
@@ -245,18 +246,45 @@ class FundingPipeline:
         if not org_name or not prog_name:
             return None
 
-        # 1. Organization 해결 (dedup by normalized name)
+        source_url = raw.get("source_url", "")
+        apply_url_raw = raw.get("apply_url")
+
+        # 1. Organization 해결 (domain dedup 우선, name dedup 폴백)
         normalized = normalize_org_name(org_name)
-        org = await self.store.get_organization_by_name(normalized)
+        domain = extract_domain(source_url) or extract_domain(apply_url_raw)
+
+        org = None
+        if domain:
+            org = await self.store.get_organization_by_domain(domain)
+        if org is None:
+            org = await self.store.get_organization_by_name(normalized)
+
+        # focus_areas에서 sector_tags 추출
+        focus_areas = raw.get("focus_areas", [])
+        if not focus_areas or not isinstance(focus_areas, list):
+            focus_areas = self._infer_sector_tags(raw)
 
         if org is None:
             org = Organization(
                 id=generate_id("org_"),
                 normalized_name=normalized,
                 display_name=org_name,
+                domain=domain,
                 org_type=self._guess_org_type(raw),
+                sector_tags=focus_areas,
             )
             await self.store.create_organization(org)
+        else:
+            # 기존 org에 domain/sector_tags backfill
+            updates: dict = {}
+            if not org.domain and domain:
+                updates["domain"] = domain
+            if not org.sector_tags and focus_areas:
+                updates["sector_tags"] = focus_areas
+            if updates:
+                await self.store.update_organization(org.id, **updates)
+                if focus_areas:
+                    org.sector_tags = focus_areas
 
         # 2. Program 해결 (dedup by org + normalized name)
         prog_normalized = prog_name.lower().strip()
@@ -265,7 +293,6 @@ class FundingPipeline:
         )
 
         if program is None:
-            # 카테고리 결정
             cat_str = raw.get("category", "")
             category = self._parse_category(cat_str, default_category)
 
@@ -275,17 +302,24 @@ class FundingPipeline:
                 normalized_name=prog_normalized,
                 display_name=prog_name,
                 category=category,
-                program_url=raw.get("apply_url"),
+                program_url=apply_url_raw,
             )
             await self.store.create_program(program)
 
         # 3. Opportunity 생성
         status = self._parse_status(raw.get("status", "unknown"))
         deadline_at = self._parse_deadline(raw.get("deadline"))
-        apply_url = raw.get("apply_url")
         budget_text = raw.get("budget")
         budget_amount = self._parse_budget_amount(budget_text)
-        source_url = raw.get("source_url", "")
+
+        # source_chain: 모든 관련 URL 수집
+        source_chain: list[str] = []
+        if source_url:
+            source_chain.append(source_url)
+        if apply_url_raw and apply_url_raw not in source_chain:
+            source_chain.append(apply_url_raw)
+        if program.program_url and program.program_url not in source_chain:
+            source_chain.append(program.program_url)
 
         opp = Opportunity(
             id=generate_id("opp_"),
@@ -294,14 +328,40 @@ class FundingPipeline:
             deadline_at=deadline_at,
             budget_amount=budget_amount,
             budget_note=budget_text,
-            apply_url=apply_url,
+            apply_url=apply_url_raw,
             output_status=OutputStatus.PENDING,
             fact_confidence=0.0,
-            source_chain=[source_url] if source_url else [],
+            source_chain=source_chain,
         )
         await self.store.create_opportunity(opp)
 
         return opp.id
+
+    def _infer_sector_tags(self, raw: dict) -> list[str]:
+        """raw data에서 sector tags 추론 (focus_areas 없을 때 fallback)."""
+        tags: list[str] = []
+        combined = " ".join([
+            raw.get("category", ""),
+            raw.get("description", ""),
+            raw.get("program", ""),
+            raw.get("organization", ""),
+        ]).lower()
+
+        keyword_map = {
+            "crypto": "crypto", "blockchain": "blockchain",
+            "web3": "web3", "defi": "defi", "nft": "nft",
+            "ai": "ai", "gaming": "gaming",
+            "infrastructure": "infrastructure",
+            "developer": "developer_tools",
+            "zk": "zero_knowledge", "layer": "layer",
+            "dao": "dao", "wallet": "wallets",
+        }
+
+        for keyword, tag in keyword_map.items():
+            if keyword in combined:
+                tags.append(tag)
+
+        return list(dict.fromkeys(tags))  # dedup 유지 순서
 
     def _guess_org_type(self, raw: dict) -> OrgType:
         """raw data에서 조직 유형 추측."""
