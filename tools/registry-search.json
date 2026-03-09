@@ -1,0 +1,46 @@
+{
+  "id": "registry-search",
+  "name": "Registry Search",
+  "summary": "Search surfaces, docs, agents, tools, and commands from the local context registry.",
+  "scope": "context-api",
+  "surfaces": [
+    "core"
+  ],
+  "reads": [
+    "docs/generated/context-registry.json",
+    "docs/CONTEXT_PLATFORM.md"
+  ],
+  "writes": [
+    "docs/generated/"
+  ],
+  "inputs": [
+    {
+      "name": "query",
+      "type": "string",
+      "required": true,
+      "description": "Lookup term."
+    },
+    {
+      "name": "kind",
+      "type": "string",
+      "required": false,
+      "description": "Optional kind filter such as agent, tool, doc, or surface."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "results",
+      "type": "json",
+      "description": "Matching manifest entries."
+    }
+  ],
+  "invocation": {
+    "kind": "npm-script",
+    "script": "registry:query"
+  },
+  "safety": {
+    "sideEffects": "read-only",
+    "approvalRequired": false
+  },
+  "public": true
+}

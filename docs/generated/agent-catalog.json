@@ -1,0 +1,102 @@
+{
+  "version": 1,
+  "agentCount": 3,
+  "agents": [
+    {
+      "id": "implementer",
+      "name": "Implementer",
+      "role": "implementer",
+      "summary": "Implements code changes against declared context and ownership boundaries.",
+      "surfaces": [
+        "core"
+      ],
+      "reads": [
+        "README.md",
+        "AGENTS.md",
+        "docs/README.md",
+        "ARCHITECTURE.md",
+        "docs/DESIGN.md",
+        "docs/ENGINEERING.md",
+        "docs/PRODUCT_SENSE.md",
+        "docs/CONTEXT_ENGINEERING.md",
+        "docs/AGENT_FACTORY.md"
+      ],
+      "writes": [
+        "src/",
+        ".agent-context/",
+        "docs/AGENT_WATCH_LOG.md"
+      ],
+      "outputs": [
+        "code-change",
+        "brief"
+      ],
+      "handoff": "brief",
+      "prompt": "Implement scoped changes against the canonical docs, keep edits inside owned paths, and leave a concise resume brief.",
+      "manifestPath": "agents/implementer.json",
+      "public": true
+    },
+    {
+      "id": "planner",
+      "name": "Planner",
+      "role": "planner",
+      "summary": "Plans and routes ambiguous work before implementation begins.",
+      "surfaces": [
+        "core"
+      ],
+      "reads": [
+        "README.md",
+        "AGENTS.md",
+        "docs/README.md",
+        "ARCHITECTURE.md",
+        "docs/SYSTEM_INTENT.md",
+        "docs/PLANS.md",
+        "docs/CONTEXT_ENGINEERING.md",
+        "docs/AGENT_FACTORY.md"
+      ],
+      "writes": [
+        "docs/exec-plans/active/",
+        ".agent-context/",
+        "docs/AGENT_WATCH_LOG.md"
+      ],
+      "outputs": [
+        "execution-plan",
+        "checkpoint"
+      ],
+      "handoff": "checkpoint",
+      "prompt": "Break requested work into minimal execution steps, route the next canonical docs, and record plan-level handoff state.",
+      "manifestPath": "agents/planner.json",
+      "public": true
+    },
+    {
+      "id": "reviewer",
+      "name": "Reviewer",
+      "role": "reviewer",
+      "summary": "Reviews work for drift, risk, and boundary compliance.",
+      "surfaces": [
+        "core"
+      ],
+      "reads": [
+        "README.md",
+        "AGENTS.md",
+        "docs/README.md",
+        "docs/QUALITY_SCORE.md",
+        "docs/RELIABILITY.md",
+        "docs/SECURITY.md",
+        "docs/CONTEXT_EVALUATION.md",
+        "docs/AGENT_FACTORY.md"
+      ],
+      "writes": [
+        ".agent-context/",
+        "docs/AGENT_WATCH_LOG.md"
+      ],
+      "outputs": [
+        "review-findings",
+        "handoff"
+      ],
+      "handoff": "handoff",
+      "prompt": "Review changes for correctness, drift, and boundary violations, then leave a handoff artifact with findings or release status.",
+      "manifestPath": "agents/reviewer.json",
+      "public": true
+    }
+  ]
+}

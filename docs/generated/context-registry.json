@@ -1,0 +1,724 @@
+{
+  "version": 1,
+  "project": {
+    "name": "VC_Grants",
+    "slug": "vc-grants",
+    "summary": "VC fundraising pipeline automation - search, apply, follow-up, and track investment deals",
+    "stack": "Svelte / TypeScript / Python",
+    "phase": "re-design",
+    "deadline": "TBD"
+  },
+  "discovery": {
+    "routesDir": "src/routes",
+    "storesDir": "src/lib/stores",
+    "apiDir": "src/routes/api"
+  },
+  "registry": {
+    "enabled": true,
+    "manifestPath": "docs/generated/context-registry.json",
+    "publicBaseUrl": "",
+    "publishTags": [
+      "vc-grants",
+      "context-kit"
+    ],
+    "searchKinds": [
+      "surface",
+      "doc",
+      "command",
+      "retrieval",
+      "agent",
+      "tool"
+    ]
+  },
+  "capabilities": {
+    "routing": true,
+    "generatedMaps": true,
+    "runtimeMemory": true,
+    "coordination": true,
+    "benchmark": true,
+    "registryQuery": true,
+    "contextualRetrieval": true,
+    "agentBlueprints": true,
+    "toolContracts": true,
+    "agentTelemetry": true,
+    "taskAB": true,
+    "sandboxPolicy": true
+  },
+  "surfaces": [
+    {
+      "id": "core",
+      "label": "Core surface",
+      "summary": "Primary responsibilities for the core surface.",
+      "spec": "docs/product-specs/core.md",
+      "routes": [
+        "/"
+      ],
+      "stores": [],
+      "apis": []
+    }
+  ],
+  "docs": [
+    {
+      "path": "README.md",
+      "role": "root-router",
+      "authority": "canonical"
+    },
+    {
+      "path": "AGENTS.md",
+      "role": "agent-rules",
+      "authority": "canonical"
+    },
+    {
+      "path": "ARCHITECTURE.md",
+      "role": "architecture-map",
+      "authority": "canonical"
+    },
+    {
+      "path": "docs/README.md",
+      "role": "docs-router",
+      "authority": "canonical"
+    },
+    {
+      "path": "docs/SYSTEM_INTENT.md",
+      "role": "system-intent",
+      "authority": "canonical"
+    },
+    {
+      "path": "docs/CONTEXT_ENGINEERING.md",
+      "role": "context-engineering",
+      "authority": "canonical"
+    },
+    {
+      "path": "docs/CONTEXT_EVALUATION.md",
+      "role": "context-evaluation",
+      "authority": "canonical"
+    },
+    {
+      "path": "docs/CONTEXT_PLATFORM.md",
+      "role": "context-platform",
+      "authority": "canonical"
+    },
+    {
+      "path": "docs/AGENT_FACTORY.md",
+      "role": "agent-factory",
+      "authority": "canonical"
+    },
+    {
+      "path": "docs/TOOL_DESIGN.md",
+      "role": "tool-design",
+      "authority": "canonical"
+    },
+    {
+      "path": "docs/AGENT_OBSERVABILITY.md",
+      "role": "agent-observability",
+      "authority": "canonical"
+    },
+    {
+      "path": "docs/MULTI_AGENT_COORDINATION.md",
+      "role": "coordination",
+      "authority": "canonical"
+    },
+    {
+      "path": "docs/SANDBOX_POLICY.md",
+      "role": "sandbox-policy",
+      "authority": "canonical"
+    },
+    {
+      "path": "docs/DESIGN.md",
+      "role": "design-authority",
+      "authority": "canonical"
+    },
+    {
+      "path": "docs/ENGINEERING.md",
+      "role": "engineering-authority",
+      "authority": "canonical"
+    },
+    {
+      "path": "docs/PLANS.md",
+      "role": "planning-authority",
+      "authority": "canonical"
+    },
+    {
+      "path": "docs/PRODUCT_SENSE.md",
+      "role": "product-heuristics",
+      "authority": "canonical"
+    },
+    {
+      "path": "docs/QUALITY_SCORE.md",
+      "role": "quality-score",
+      "authority": "canonical"
+    },
+    {
+      "path": "docs/RELIABILITY.md",
+      "role": "reliability",
+      "authority": "canonical"
+    },
+    {
+      "path": "docs/SECURITY.md",
+      "role": "security",
+      "authority": "canonical"
+    },
+    {
+      "path": "docs/HARNESS.md",
+      "role": "harness",
+      "authority": "canonical"
+    },
+    {
+      "path": "docs/product-specs/core.md",
+      "role": "surface-core",
+      "authority": "surface-canonical"
+    }
+  ],
+  "commands": [
+    {
+      "name": "agent:event",
+      "script": "node scripts/dev/log-agent-event.mjs",
+      "category": "agent"
+    },
+    {
+      "name": "agent:finish",
+      "script": "node scripts/dev/finish-agent-run.mjs",
+      "category": "agent"
+    },
+    {
+      "name": "agent:new",
+      "script": "node scripts/dev/scaffold-agent.mjs",
+      "category": "agent"
+    },
+    {
+      "name": "agent:refresh",
+      "script": "node scripts/dev/refresh-agent-catalog.mjs && node scripts/dev/refresh-context-registry.mjs",
+      "category": "agent"
+    },
+    {
+      "name": "agent:report",
+      "script": "node scripts/dev/refresh-agent-usage-report.mjs",
+      "category": "agent"
+    },
+    {
+      "name": "agent:start",
+      "script": "node scripts/dev/start-agent-run.mjs",
+      "category": "agent"
+    },
+    {
+      "name": "coord:check",
+      "script": "node scripts/dev/check-agent-coordination.mjs",
+      "category": "coord"
+    },
+    {
+      "name": "coord:claim",
+      "script": "node scripts/dev/claim-work.mjs",
+      "category": "coord"
+    },
+    {
+      "name": "coord:list",
+      "script": "node scripts/dev/list-work-claims.mjs",
+      "category": "coord"
+    },
+    {
+      "name": "coord:release",
+      "script": "node scripts/dev/release-work.mjs",
+      "category": "coord"
+    },
+    {
+      "name": "ctx:auto",
+      "script": "bash scripts/dev/context-auto.sh",
+      "category": "ctx"
+    },
+    {
+      "name": "ctx:check",
+      "script": "bash scripts/dev/check-context-quality.sh",
+      "category": "ctx"
+    },
+    {
+      "name": "ctx:checkpoint",
+      "script": "bash scripts/dev/context-checkpoint.sh",
+      "category": "ctx"
+    },
+    {
+      "name": "ctx:compact",
+      "script": "bash scripts/dev/context-compact.sh",
+      "category": "ctx"
+    },
+    {
+      "name": "ctx:pin",
+      "script": "bash scripts/dev/context-pin.sh",
+      "category": "ctx"
+    },
+    {
+      "name": "ctx:restore",
+      "script": "bash scripts/dev/context-restore.sh",
+      "category": "ctx"
+    },
+    {
+      "name": "ctx:save",
+      "script": "bash scripts/dev/context-save.sh",
+      "category": "ctx"
+    },
+    {
+      "name": "docs:check",
+      "script": "bash scripts/dev/check-docs-context.sh",
+      "category": "docs"
+    },
+    {
+      "name": "docs:refresh",
+      "script": "node scripts/dev/refresh-generated-context.mjs && node scripts/dev/refresh-context-retrieval.mjs && node scripts/dev/refresh-agent-catalog.mjs && node scripts/dev/refresh-tool-catalog.mjs && node scripts/dev/refresh-agent-usage-report.mjs && node scripts/dev/refresh-context-registry.mjs && node scripts/dev/refresh-context-ab-report.mjs && node scripts/dev/refresh-sandbox-policy-report.mjs && node scripts/dev/refresh-doc-governance.mjs && node scripts/dev/refresh-context-metrics.mjs && node scripts/dev/refresh-context-value-demo.mjs",
+      "category": "docs"
+    },
+    {
+      "name": "docs:refresh:check",
+      "script": "node scripts/dev/refresh-generated-context.mjs --check && node scripts/dev/refresh-context-retrieval.mjs --check && node scripts/dev/refresh-agent-catalog.mjs --check && node scripts/dev/refresh-tool-catalog.mjs --check && node scripts/dev/refresh-agent-usage-report.mjs --check && node scripts/dev/refresh-context-registry.mjs --check && node scripts/dev/refresh-context-ab-report.mjs --check && node scripts/dev/refresh-sandbox-policy-report.mjs --check && node scripts/dev/refresh-doc-governance.mjs --check && node scripts/dev/refresh-context-metrics.mjs --check && node scripts/dev/refresh-context-value-demo.mjs --check",
+      "category": "docs"
+    },
+    {
+      "name": "eval:ab:record",
+      "script": "node scripts/dev/record-context-ab-eval.mjs",
+      "category": "eval"
+    },
+    {
+      "name": "eval:ab:refresh",
+      "script": "node scripts/dev/refresh-context-ab-report.mjs",
+      "category": "eval"
+    },
+    {
+      "name": "gate:context",
+      "script": "npm run docs:check && npm run ctx:check -- --strict && npm run coord:check && npm run sandbox:check",
+      "category": "gate"
+    },
+    {
+      "name": "harness:all",
+      "script": "bash scripts/dev/run-full-context-harness.sh",
+      "category": "harness"
+    },
+    {
+      "name": "harness:benchmark",
+      "script": "node scripts/dev/run-context-benchmark.mjs",
+      "category": "harness"
+    },
+    {
+      "name": "harness:browser",
+      "script": "bash scripts/dev/run-browser-context-harness.sh",
+      "category": "harness"
+    },
+    {
+      "name": "harness:smoke",
+      "script": "bash scripts/dev/run-context-harness.sh",
+      "category": "harness"
+    },
+    {
+      "name": "registry:describe",
+      "script": "node scripts/dev/describe-context-entry.mjs",
+      "category": "registry"
+    },
+    {
+      "name": "registry:query",
+      "script": "node scripts/dev/query-context-registry.mjs",
+      "category": "registry"
+    },
+    {
+      "name": "registry:refresh",
+      "script": "node scripts/dev/refresh-context-registry.mjs",
+      "category": "registry"
+    },
+    {
+      "name": "registry:serve",
+      "script": "node scripts/dev/serve-context-registry.mjs",
+      "category": "registry"
+    },
+    {
+      "name": "retrieve:query",
+      "script": "node scripts/dev/query-context-retrieval.mjs",
+      "category": "retrieve"
+    },
+    {
+      "name": "retrieve:refresh",
+      "script": "node scripts/dev/refresh-context-retrieval.mjs",
+      "category": "retrieve"
+    },
+    {
+      "name": "safe:git-config",
+      "script": "bash scripts/dev/bootstrap-git-config.sh",
+      "category": "safe"
+    },
+    {
+      "name": "safe:hooks",
+      "script": "bash scripts/dev/install-git-hooks.sh",
+      "category": "safe"
+    },
+    {
+      "name": "safe:status",
+      "script": "bash scripts/dev/safe-status.sh",
+      "category": "safe"
+    },
+    {
+      "name": "safe:sync",
+      "script": "bash scripts/dev/sync-branch.sh",
+      "category": "safe"
+    },
+    {
+      "name": "safe:sync:gate",
+      "script": "bash scripts/dev/sync-branch.sh --gate",
+      "category": "safe"
+    },
+    {
+      "name": "safe:worktree",
+      "script": "bash scripts/dev/new-worktree.sh",
+      "category": "safe"
+    },
+    {
+      "name": "sandbox:check",
+      "script": "node scripts/dev/refresh-sandbox-policy-report.mjs --validate-only",
+      "category": "sandbox"
+    },
+    {
+      "name": "tool:new",
+      "script": "node scripts/dev/scaffold-tool.mjs",
+      "category": "tool"
+    },
+    {
+      "name": "tool:refresh",
+      "script": "node scripts/dev/refresh-tool-catalog.mjs && node scripts/dev/refresh-context-registry.mjs",
+      "category": "tool"
+    }
+  ],
+  "agents": [
+    {
+      "id": "implementer",
+      "name": "Implementer",
+      "role": "implementer",
+      "summary": "Implements code changes against declared context and ownership boundaries.",
+      "surfaces": [
+        "core"
+      ],
+      "manifestPath": "agents/implementer.json",
+      "outputs": [
+        "code-change",
+        "brief"
+      ],
+      "handoff": "brief",
+      "public": true
+    },
+    {
+      "id": "planner",
+      "name": "Planner",
+      "role": "planner",
+      "summary": "Plans and routes ambiguous work before implementation begins.",
+      "surfaces": [
+        "core"
+      ],
+      "manifestPath": "agents/planner.json",
+      "outputs": [
+        "execution-plan",
+        "checkpoint"
+      ],
+      "handoff": "checkpoint",
+      "public": true
+    },
+    {
+      "id": "reviewer",
+      "name": "Reviewer",
+      "role": "reviewer",
+      "summary": "Reviews work for drift, risk, and boundary compliance.",
+      "surfaces": [
+        "core"
+      ],
+      "manifestPath": "agents/reviewer.json",
+      "outputs": [
+        "review-findings",
+        "handoff"
+      ],
+      "handoff": "handoff",
+      "public": true
+    }
+  ],
+  "tools": [
+    {
+      "id": "context-retrieve",
+      "name": "Context Retrieve",
+      "summary": "Query canonical docs through the contextual retrieval index when static routing is not enough.",
+      "scope": "context-api",
+      "surfaces": [
+        "core"
+      ],
+      "reads": [
+        "docs/generated/contextual-retrieval-index.json",
+        "docs/CONTEXTUAL_RETRIEVAL.md"
+      ],
+      "writes": [
+        "docs/generated/"
+      ],
+      "inputs": [
+        {
+          "name": "query",
+          "type": "string",
+          "required": true,
+          "description": "Natural-language retrieval query."
+        },
+        {
+          "name": "surface",
+          "type": "string",
+          "required": false,
+          "description": "Optional surface bias for ranking."
+        }
+      ],
+      "outputs": [
+        {
+          "name": "results",
+          "type": "json",
+          "description": "Ranked retrieval results with scores and chunk excerpts."
+        }
+      ],
+      "invocation": {
+        "kind": "npm-script",
+        "script": "retrieve:query"
+      },
+      "safety": {
+        "sideEffects": "read-only",
+        "approvalRequired": false
+      },
+      "manifestPath": "tools/context-retrieve.json",
+      "public": true
+    },
+    {
+      "id": "coord-claim",
+      "name": "Coordination Claim",
+      "summary": "Claim a scoped surface and path boundary before feature work begins.",
+      "scope": "coordination",
+      "surfaces": [
+        "core"
+      ],
+      "reads": [
+        "docs/MULTI_AGENT_COORDINATION.md",
+        ".agent-context/coordination/"
+      ],
+      "writes": [
+        ".agent-context/coordination/"
+      ],
+      "inputs": [
+        {
+          "name": "workId",
+          "type": "string",
+          "required": true,
+          "description": "Stable work identifier."
+        },
+        {
+          "name": "path",
+          "type": "string",
+          "required": true,
+          "description": "Owned repo path prefix."
+        }
+      ],
+      "outputs": [
+        {
+          "name": "claim",
+          "type": "json",
+          "description": "Stored claim manifest with lease metadata."
+        }
+      ],
+      "invocation": {
+        "kind": "npm-script",
+        "script": "coord:claim"
+      },
+      "safety": {
+        "sideEffects": "writes-generated",
+        "approvalRequired": false
+      },
+      "manifestPath": "tools/coord-claim.json",
+      "public": true
+    },
+    {
+      "id": "registry-search",
+      "name": "Registry Search",
+      "summary": "Search surfaces, docs, agents, tools, and commands from the local context registry.",
+      "scope": "context-api",
+      "surfaces": [
+        "core"
+      ],
+      "reads": [
+        "docs/generated/context-registry.json",
+        "docs/CONTEXT_PLATFORM.md"
+      ],
+      "writes": [
+        "docs/generated/"
+      ],
+      "inputs": [
+        {
+          "name": "query",
+          "type": "string",
+          "required": true,
+          "description": "Lookup term."
+        },
+        {
+          "name": "kind",
+          "type": "string",
+          "required": false,
+          "description": "Optional kind filter such as agent, tool, doc, or surface."
+        }
+      ],
+      "outputs": [
+        {
+          "name": "results",
+          "type": "json",
+          "description": "Matching manifest entries."
+        }
+      ],
+      "invocation": {
+        "kind": "npm-script",
+        "script": "registry:query"
+      },
+      "safety": {
+        "sideEffects": "read-only",
+        "approvalRequired": false
+      },
+      "manifestPath": "tools/registry-search.json",
+      "public": true
+    }
+  ],
+  "telemetry": {
+    "enabled": true,
+    "reportPath": "docs/generated/agent-usage-report.json"
+  },
+  "retrieval": {
+    "enabled": true,
+    "indexPath": "docs/generated/contextual-retrieval-index.json",
+    "chunkCount": 154,
+    "sourceCount": 27,
+    "sources": [
+      {
+        "path": "AGENTS.md",
+        "role": "agent-rules",
+        "authority": "canonical"
+      },
+      {
+        "path": "agents/README.md",
+        "role": "agent-blueprint",
+        "authority": "canonical"
+      },
+      {
+        "path": "ARCHITECTURE.md",
+        "role": "architecture-map",
+        "authority": "canonical"
+      },
+      {
+        "path": "docs/AGENT_FACTORY.md",
+        "role": "agent-factory",
+        "authority": "canonical"
+      },
+      {
+        "path": "docs/AGENT_OBSERVABILITY.md",
+        "role": "agent-observability",
+        "authority": "canonical"
+      },
+      {
+        "path": "docs/CONTEXT_ENGINEERING.md",
+        "role": "context-engineering",
+        "authority": "canonical"
+      },
+      {
+        "path": "docs/CONTEXT_EVALUATION.md",
+        "role": "context-evaluation",
+        "authority": "canonical"
+      },
+      {
+        "path": "docs/CONTEXT_PLATFORM.md",
+        "role": "context-platform",
+        "authority": "canonical"
+      },
+      {
+        "path": "docs/CONTEXTUAL_RETRIEVAL.md",
+        "role": "contextual-retrieval",
+        "authority": "canonical"
+      },
+      {
+        "path": "docs/design-docs/core-beliefs.md",
+        "role": "design-doc",
+        "authority": "canonical"
+      },
+      {
+        "path": "docs/design-docs/index.md",
+        "role": "design-doc",
+        "authority": "canonical"
+      },
+      {
+        "path": "docs/DESIGN.md",
+        "role": "doc",
+        "authority": "tracked"
+      },
+      {
+        "path": "docs/ENGINEERING.md",
+        "role": "doc",
+        "authority": "tracked"
+      },
+      {
+        "path": "docs/HARNESS.md",
+        "role": "doc",
+        "authority": "tracked"
+      },
+      {
+        "path": "docs/MULTI_AGENT_COORDINATION.md",
+        "role": "coordination",
+        "authority": "canonical"
+      },
+      {
+        "path": "docs/PLANS.md",
+        "role": "doc",
+        "authority": "tracked"
+      },
+      {
+        "path": "docs/PRODUCT_SENSE.md",
+        "role": "doc",
+        "authority": "tracked"
+      },
+      {
+        "path": "docs/product-specs/core.md",
+        "role": "surface-spec",
+        "authority": "canonical"
+      },
+      {
+        "path": "docs/product-specs/index.md",
+        "role": "surface-spec",
+        "authority": "canonical"
+      },
+      {
+        "path": "docs/QUALITY_SCORE.md",
+        "role": "doc",
+        "authority": "tracked"
+      },
+      {
+        "path": "docs/RELIABILITY.md",
+        "role": "doc",
+        "authority": "tracked"
+      },
+      {
+        "path": "docs/SANDBOX_POLICY.md",
+        "role": "sandbox-policy",
+        "authority": "canonical"
+      },
+      {
+        "path": "docs/SECURITY.md",
+        "role": "doc",
+        "authority": "tracked"
+      },
+      {
+        "path": "docs/SYSTEM_INTENT.md",
+        "role": "doc",
+        "authority": "tracked"
+      },
+      {
+        "path": "docs/TOOL_DESIGN.md",
+        "role": "tool-design",
+        "authority": "canonical"
+      },
+      {
+        "path": "README.md",
+        "role": "root-router",
+        "authority": "canonical"
+      },
+      {
+        "path": "tools/README.md",
+        "role": "tool-contract",
+        "authority": "canonical"
+      }
+    ]
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "id": "planner",
+  "name": "Planner",
+  "role": "planner",
+  "summary": "Plans and routes ambiguous work before implementation begins.",
+  "surfaces": [
+    "core"
+  ],
+  "reads": [
+    "README.md",
+    "AGENTS.md",
+    "docs/README.md",
+    "ARCHITECTURE.md",
+    "docs/SYSTEM_INTENT.md",
+    "docs/PLANS.md",
+    "docs/CONTEXT_ENGINEERING.md",
+    "docs/AGENT_FACTORY.md"
+  ],
+  "writes": [
+    "docs/exec-plans/active/",
+    ".agent-context/",
+    "docs/AGENT_WATCH_LOG.md"
+  ],
+  "outputs": [
+    "execution-plan",
+    "checkpoint"
+  ],
+  "handoff": "checkpoint",
+  "prompt": "Break requested work into minimal execution steps, route the next canonical docs, and record plan-level handoff state.",
+  "public": true
+}

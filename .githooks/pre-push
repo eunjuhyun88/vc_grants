@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ "${SKIP_PREPUSH:-0}" = "1" ]; then
+	echo "[pre-push] SKIP_PREPUSH=1 set. Skipping gate."
+	exit 0
+fi
+
+ROOT_DIR="$(git rev-parse --show-toplevel)"
+cd "$ROOT_DIR"
+
+CURRENT_BRANCH="$(git symbolic-ref --quiet --short HEAD 2>/dev/null || echo HEAD)"
+MAIN_BRANCH="${CTX_MAIN_BRANCH:-$(node scripts/dev/context-config.mjs get-string git.mainBranch 2>/dev/null || true)}"
+MAIN_BRANCH="${MAIN_BRANCH:-main}"
+
+echo "[pre-push] branch: $CURRENT_BRANCH"
+echo "[pre-push] main branch: $MAIN_BRANCH"
+
+if [ -f scripts/dev/context-auto.sh ]; then
+	echo "[pre-push] context auto snapshot"
+	bash scripts/dev/context-auto.sh pre-push || true
+fi
+
+if [ -x scripts/dev/check-context-quality.sh ]; then
+	echo "[pre-push] context quality check"
+	bash scripts/dev/check-context-quality.sh --strict
+fi
+
+echo "[pre-push] fetching origin"
+git fetch origin --prune
+
+if ! git rev-parse --verify "origin/$MAIN_BRANCH" >/dev/null 2>&1; then
+	echo "[pre-push] origin/$MAIN_BRANCH not found. Check remote configuration."
+	exit 1
+fi
+
+if ! git merge-base --is-ancestor "origin/$MAIN_BRANCH" HEAD; then
+	echo "[pre-push] blocked: current branch does not include latest origin/$MAIN_BRANCH."
+	echo "[pre-push] run: npm run safe:sync:gate"
+	git rev-list --left-right --count HEAD..."origin/$MAIN_BRANCH" | awk '{print "[pre-push] ahead behind = "$1" "$2}'
+	exit 1
+fi
+
+echo "[pre-push] running npm run gate:context"
+npm run gate:context
+
+if [ -x scripts/dev/run-configured-command.sh ]; then
+	echo "[pre-push] running configured project gate/check/build"
+	bash scripts/dev/run-configured-command.sh gate
+	bash scripts/dev/run-configured-command.sh check
+	bash scripts/dev/run-configured-command.sh build
+fi
+
+echo "[pre-push] gate passed"

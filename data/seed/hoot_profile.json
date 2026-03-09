@@ -1,0 +1,41 @@
+{
+    "id": "cp_hoot",
+    "company_name": "Holo Studio",
+    "stage": "mvp",
+    "sector_tags": [
+        "ai_infra",
+        "decentralized_ai",
+        "crypto_infra",
+        "distributed_compute",
+        "personal_model_training"
+    ],
+    "projects": [
+        {
+            "name": "HOOT",
+            "priority": 1,
+            "tags": ["ai_infra", "decentralized_ai", "personal_model_training", "distributed_compute", "blockchain"]
+        },
+        {
+            "name": "StockClaw",
+            "priority": 2,
+            "tags": ["ai", "fintech"]
+        },
+        {
+            "name": "MoltVC",
+            "priority": 3,
+            "tags": ["vc", "ai"]
+        },
+        {
+            "name": "PlayArts",
+            "priority": 4,
+            "tags": ["gaming", "ai"]
+        },
+        {
+            "name": "ClawGene",
+            "priority": 5,
+            "tags": ["ai", "biotech"]
+        }
+    ],
+    "description": "개인 데이터 기반 소형모델(Qwen 등) 학습 + 분산 컴퓨팅(토렌트 개념) + 블록체인 coordination",
+    "telegram_user_id": null
+}

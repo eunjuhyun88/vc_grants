@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(git rev-parse --show-toplevel)"
+cd "$ROOT_DIR"
+
+if [ ! -x scripts/dev/post-merge-sync.sh ]; then
+	echo "[post-merge] scripts/dev/post-merge-sync.sh not found. Skipping."
+	exit 0
+fi
+
+bash scripts/dev/post-merge-sync.sh

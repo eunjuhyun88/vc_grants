@@ -1,0 +1,39 @@
+# Agent context (runtime)
+.agent-context/
+context-kit.local.json
+.codex/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# Environment
+.env
+
+# DB
+data/funding.db
+data/*.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Agent memory (runtime)
+.agent-memory/
+
+# Node (memento-kit)
+node_modules/

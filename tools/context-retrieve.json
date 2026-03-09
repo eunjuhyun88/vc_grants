@@ -1,0 +1,46 @@
+{
+  "id": "context-retrieve",
+  "name": "Context Retrieve",
+  "summary": "Query canonical docs through the contextual retrieval index when static routing is not enough.",
+  "scope": "context-api",
+  "surfaces": [
+    "core"
+  ],
+  "reads": [
+    "docs/generated/contextual-retrieval-index.json",
+    "docs/CONTEXTUAL_RETRIEVAL.md"
+  ],
+  "writes": [
+    "docs/generated/"
+  ],
+  "inputs": [
+    {
+      "name": "query",
+      "type": "string",
+      "required": true,
+      "description": "Natural-language retrieval query."
+    },
+    {
+      "name": "surface",
+      "type": "string",
+      "required": false,
+      "description": "Optional surface bias for ranking."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "results",
+      "type": "json",
+      "description": "Ranked retrieval results with scores and chunk excerpts."
+    }
+  ],
+  "invocation": {
+    "kind": "npm-script",
+    "script": "retrieve:query"
+  },
+  "safety": {
+    "sideEffects": "read-only",
+    "approvalRequired": false
+  },
+  "public": true
+}

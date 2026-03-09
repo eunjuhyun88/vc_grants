@@ -1,0 +1,46 @@
+{
+  "id": "coord-claim",
+  "name": "Coordination Claim",
+  "summary": "Claim a scoped surface and path boundary before feature work begins.",
+  "scope": "coordination",
+  "surfaces": [
+    "core"
+  ],
+  "reads": [
+    "docs/MULTI_AGENT_COORDINATION.md",
+    ".agent-context/coordination/"
+  ],
+  "writes": [
+    ".agent-context/coordination/"
+  ],
+  "inputs": [
+    {
+      "name": "workId",
+      "type": "string",
+      "required": true,
+      "description": "Stable work identifier."
+    },
+    {
+      "name": "path",
+      "type": "string",
+      "required": true,
+      "description": "Owned repo path prefix."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "claim",
+      "type": "json",
+      "description": "Stored claim manifest with lease metadata."
+    }
+  ],
+  "invocation": {
+    "kind": "npm-script",
+    "script": "coord:claim"
+  },
+  "safety": {
+    "sideEffects": "writes-generated",
+    "approvalRequired": false
+  },
+  "public": true
+}

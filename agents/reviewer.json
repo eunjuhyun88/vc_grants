@@ -1,0 +1,30 @@
+{
+  "id": "reviewer",
+  "name": "Reviewer",
+  "role": "reviewer",
+  "summary": "Reviews work for drift, risk, and boundary compliance.",
+  "surfaces": [
+    "core"
+  ],
+  "reads": [
+    "README.md",
+    "AGENTS.md",
+    "docs/README.md",
+    "docs/QUALITY_SCORE.md",
+    "docs/RELIABILITY.md",
+    "docs/SECURITY.md",
+    "docs/CONTEXT_EVALUATION.md",
+    "docs/AGENT_FACTORY.md"
+  ],
+  "writes": [
+    ".agent-context/",
+    "docs/AGENT_WATCH_LOG.md"
+  ],
+  "outputs": [
+    "review-findings",
+    "handoff"
+  ],
+  "handoff": "handoff",
+  "prompt": "Review changes for correctness, drift, and boundary violations, then leave a handoff artifact with findings or release status.",
+  "public": true
+}

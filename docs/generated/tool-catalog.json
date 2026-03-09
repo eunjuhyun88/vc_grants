@@ -1,0 +1,147 @@
+{
+  "version": 1,
+  "toolCount": 3,
+  "tools": [
+    {
+      "id": "context-retrieve",
+      "name": "Context Retrieve",
+      "summary": "Query canonical docs through the contextual retrieval index when static routing is not enough.",
+      "scope": "context-api",
+      "surfaces": [
+        "core"
+      ],
+      "reads": [
+        "docs/generated/contextual-retrieval-index.json",
+        "docs/CONTEXTUAL_RETRIEVAL.md"
+      ],
+      "writes": [
+        "docs/generated/"
+      ],
+      "inputs": [
+        {
+          "name": "query",
+          "type": "string",
+          "required": true,
+          "description": "Natural-language retrieval query."
+        },
+        {
+          "name": "surface",
+          "type": "string",
+          "required": false,
+          "description": "Optional surface bias for ranking."
+        }
+      ],
+      "outputs": [
+        {
+          "name": "results",
+          "type": "json",
+          "description": "Ranked retrieval results with scores and chunk excerpts."
+        }
+      ],
+      "invocation": {
+        "kind": "npm-script",
+        "script": "retrieve:query"
+      },
+      "safety": {
+        "sideEffects": "read-only",
+        "approvalRequired": false
+      },
+      "manifestPath": "tools/context-retrieve.json",
+      "public": true
+    },
+    {
+      "id": "coord-claim",
+      "name": "Coordination Claim",
+      "summary": "Claim a scoped surface and path boundary before feature work begins.",
+      "scope": "coordination",
+      "surfaces": [
+        "core"
+      ],
+      "reads": [
+        "docs/MULTI_AGENT_COORDINATION.md",
+        ".agent-context/coordination/"
+      ],
+      "writes": [
+        ".agent-context/coordination/"
+      ],
+      "inputs": [
+        {
+          "name": "workId",
+          "type": "string",
+          "required": true,
+          "description": "Stable work identifier."
+        },
+        {
+          "name": "path",
+          "type": "string",
+          "required": true,
+          "description": "Owned repo path prefix."
+        }
+      ],
+      "outputs": [
+        {
+          "name": "claim",
+          "type": "json",
+          "description": "Stored claim manifest with lease metadata."
+        }
+      ],
+      "invocation": {
+        "kind": "npm-script",
+        "script": "coord:claim"
+      },
+      "safety": {
+        "sideEffects": "writes-generated",
+        "approvalRequired": false
+      },
+      "manifestPath": "tools/coord-claim.json",
+      "public": true
+    },
+    {
+      "id": "registry-search",
+      "name": "Registry Search",
+      "summary": "Search surfaces, docs, agents, tools, and commands from the local context registry.",
+      "scope": "context-api",
+      "surfaces": [
+        "core"
+      ],
+      "reads": [
+        "docs/generated/context-registry.json",
+        "docs/CONTEXT_PLATFORM.md"
+      ],
+      "writes": [
+        "docs/generated/"
+      ],
+      "inputs": [
+        {
+          "name": "query",
+          "type": "string",
+          "required": true,
+          "description": "Lookup term."
+        },
+        {
+          "name": "kind",
+          "type": "string",
+          "required": false,
+          "description": "Optional kind filter such as agent, tool, doc, or surface."
+        }
+      ],
+      "outputs": [
+        {
+          "name": "results",
+          "type": "json",
+          "description": "Matching manifest entries."
+        }
+      ],
+      "invocation": {
+        "kind": "npm-script",
+        "script": "registry:query"
+      },
+      "safety": {
+        "sideEffects": "read-only",
+        "approvalRequired": false
+      },
+      "manifestPath": "tools/registry-search.json",
+      "public": true
+    }
+  ]
+}

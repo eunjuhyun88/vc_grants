@@ -1,0 +1,217 @@
+{
+  "version": 1,
+  "project": {
+    "name": "VC_Grants",
+    "slug": "vc-grants",
+    "summary": "VC fundraising pipeline automation - search, apply, follow-up, and track investment deals",
+    "stack": "Svelte / TypeScript / Python",
+    "phase": "re-design",
+    "deadline": "TBD"
+  },
+  "git": {
+    "mainBranch": "main"
+  },
+  "discovery": {
+    "routesDir": "src/routes",
+    "storesDir": "src/lib/stores",
+    "apiDir": "src/routes/api"
+  },
+  "claude": {
+    "enabled": true,
+    "settingsPath": ".claude/settings.json",
+    "riskyPathHints": [
+      "src/auth",
+      "src/persistence",
+      "infra"
+    ]
+  },
+  "surfaces": [
+  {
+    "id": "core",
+    "label": "Core surface",
+    "summary": "Primary responsibilities for the core surface.",
+    "spec": "docs/product-specs/core.md",
+    "routes": [
+      "/"
+    ],
+    "stores": [],
+    "apis": []
+  }
+],
+  "harness": {
+    "pages": [
+      "/"
+    ],
+    "apis": [],
+    "browserPages": [
+      "/"
+    ]
+  },
+	  "coordination": {
+	    "requireClaimOnFeatureBranches": true,
+	    "requirePathsOnFeatureBranches": true,
+	    "featureBranchPrefixes": [
+	      "codex/"
+	    ],
+	    "defaultLeaseMinutes": 240,
+	    "lockStaleMinutes": 15,
+	    "failOnExpiredClaims": true,
+	    "failOnPathOverlap": true,
+	    "failOnUnscopedSurfaceOverlap": true,
+	    "sharedPathPrefixes": [
+      "docs/AGENT_WATCH_LOG.md",
+      "docs/generated/",
+      ".agent-context/"
+	    ]
+	  },
+	  "registry": {
+	    "enabled": true,
+	    "manifestPath": "docs/generated/context-registry.json",
+	    "publicBaseUrl": "",
+	    "publishTags": [
+	      "vc-grants",
+	      "context-kit"
+	    ],
+	    "searchKinds": [
+	      "surface",
+	      "doc",
+	      "command",
+	      "retrieval",
+	      "agent",
+	      "tool"
+	    ]
+	  },
+	  "agents": {
+	    "enabled": true,
+	    "dir": "agents",
+	    "catalogPath": "docs/generated/agent-catalog.json",
+	    "defaultSurface": "core"
+	  },
+	  "tools": {
+	    "enabled": true,
+	    "dir": "tools",
+	    "catalogPath": "docs/generated/tool-catalog.json",
+	    "defaultSurface": "core"
+	  },
+	  "telemetry": {
+	    "enabled": true,
+	    "runsDir": ".agent-context/telemetry/runs",
+	    "eventsDir": ".agent-context/telemetry/events",
+	    "activeDir": ".agent-context/telemetry/active",
+	    "lockPath": ".agent-context/telemetry/telemetry.lock",
+	    "lockStaleMinutes": 5,
+	    "reportPath": "docs/generated/agent-usage-report.json",
+	    "defaults": {
+	      "taskComplexity": "moderate",
+	      "skillLevel": "experienced",
+	      "purpose": "product-development",
+	      "autonomy": "assisted"
+	    }
+	  },
+	  "retrieval": {
+	    "enabled": true,
+	    "includePaths": [
+	      "README.md",
+	      "AGENTS.md",
+	      "ARCHITECTURE.md",
+	      "docs/SYSTEM_INTENT.md",
+	      "docs/CONTEXT_ENGINEERING.md",
+	      "docs/CONTEXT_EVALUATION.md",
+	      "docs/CONTEXT_PLATFORM.md",
+	      "docs/CONTEXTUAL_RETRIEVAL.md",
+	      "docs/AGENT_FACTORY.md",
+	      "docs/TOOL_DESIGN.md",
+	      "docs/AGENT_OBSERVABILITY.md",
+	      "docs/MULTI_AGENT_COORDINATION.md",
+	      "docs/SANDBOX_POLICY.md",
+	      "docs/DESIGN.md",
+	      "docs/ENGINEERING.md",
+	      "docs/PLANS.md",
+	      "docs/PRODUCT_SENSE.md",
+	      "docs/QUALITY_SCORE.md",
+	      "docs/RELIABILITY.md",
+	      "docs/SECURITY.md",
+	      "docs/HARNESS.md",
+	      "agents/",
+	      "tools/",
+	      "docs/design-docs/",
+	      "docs/product-specs/"
+	    ],
+	    "excludePaths": [
+	      "docs/archive/",
+	      "docs/generated/",
+	      ".agent-context/"
+	    ],
+	    "chunkWords": 120,
+	    "overlapWords": 30,
+	    "defaultTopK": 5,
+	    "contextualWeight": 0.65,
+	    "rawWeight": 0.35,
+	    "pathBoost": 0.8,
+	    "headingBoost": 0.5,
+	    "surfaceBoost": 0.75,
+	    "indexPath": "docs/generated/contextual-retrieval-index.json"
+	  },
+	  "sandbox": {
+	    "enabled": true,
+	    "allowReadPaths": [
+	      "README.md",
+	      "AGENTS.md",
+	      "ARCHITECTURE.md",
+	      "context-kit.json",
+	      "docs/",
+	      "agents/",
+	      "tools/",
+	      "src/",
+	      "package.json"
+	    ],
+	    "allowWritePaths": [
+	      ".agent-context/",
+	      "docs/generated/",
+	      "scripts/dev/"
+	    ],
+	    "allowNetworkHosts": [
+	      "127.0.0.1",
+	      "localhost"
+	    ],
+	    "denyCommandPrefixes": [
+	      "rm -rf",
+	      "git reset --hard",
+	      "git checkout --",
+	      "curl | sh"
+	    ],
+	    "requireApprovalCommandPrefixes": [
+	      "git push",
+	      "npm publish",
+	      "docker push"
+	    ],
+	    "credentialEnvAllowlist": []
+	  },
+	  "evaluation": {
+	    "targets": {
+	      "smallMapReductionVsCanonicalPct": 40,
+      "smallMapReductionVsAllDocsPct": 55,
+      "surfaceReductionVsAllDocsPct": 50,
+      "smallMapMaxApproxTokens": 3800,
+      "smallMapMaxFiles": 6,
+      "canonicalMaxApproxTokens": 12000,
+      "noiseRateMaxPct": 10
+    },
+	    "benchmark": {
+	      "runs": 3,
+	      "warmupRuns": 1,
+	      "mode": "smoke",
+	      "maxDurationCvPct": 15
+	    },
+	    "ab": {
+	      "minComparisons": 1,
+	      "targetDocsBeforeFirstEdit": 6,
+	      "targetResumeLatencyMinutes": 3
+	    }
+	  },
+	  "commands": {
+    "check": "",
+    "build": "",
+    "gate": ""
+  }
+}

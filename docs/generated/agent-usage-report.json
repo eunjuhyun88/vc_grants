@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "runCount": 0,
+  "finishedRunCount": 0,
+  "successRatePct": null,
+  "averageActualMinutes": null,
+  "averageBaselineMinutes": null,
+  "totalEstimatedTimeSavedMinutes": null,
+  "averageDocsBeforeFirstEdit": null,
+  "averageRetrievalQueriesBeforeFirstEdit": null,
+  "averageRegistryQueriesBeforeFirstEdit": null,
+  "primitiveBreakdowns": {
+    "purpose": [],
+    "autonomy": [],
+    "taskComplexity": []
+  },
+  "runs": []
+}
