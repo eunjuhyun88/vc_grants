@@ -252,6 +252,19 @@ class DailyBriefData:
 
 
 # ============================================================
+# Agent Result (공통 반환 타입)
+# ============================================================
+
+@dataclass
+class AgentResult:
+    """모든 Agent의 공통 반환 타입."""
+    success: bool
+    data: dict = field(default_factory=dict)
+    error: str | None = None
+    elapsed_ms: float = 0.0
+
+
+# ============================================================
 # Agent I/O 타입
 # ============================================================
 

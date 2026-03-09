@@ -648,6 +648,20 @@ class EntityStore:
         rows = await cursor.fetchall()
         return [self._row_to_fit(r) for r in rows]
 
+    async def get_fit_recommendation(
+        self,
+        opportunity_id: str,
+        company_profile_id: str,
+    ) -> FitRecommendation | None:
+        """특정 기회+프로필 조합의 fit 추천 조회."""
+        cursor = await self.db.execute(
+            """SELECT * FROM fit_recommendations
+               WHERE opportunity_id = ? AND company_profile_id = ?""",
+            (opportunity_id, company_profile_id),
+        )
+        row = await cursor.fetchone()
+        return self._row_to_fit(row) if row else None
+
     def _row_to_fit(self, row: aiosqlite.Row) -> FitRecommendation:
         return FitRecommendation(
             id=row["id"],

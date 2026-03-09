@@ -124,7 +124,8 @@ CREATE TABLE IF NOT EXISTS fit_recommendations (
     urgency_score       REAL,
     expected_value      REAL,
     confidence          REAL,
-    computed_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    computed_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(opportunity_id, company_profile_id)
 );
 
 CREATE TABLE IF NOT EXISTS change_events (
