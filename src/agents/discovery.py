@@ -1,7 +1,7 @@
 """
 Funding Intelligence Agent — Discovery Agent.
 
-Tavily API 검색 → httpx fetch → Claude Haiku parse.
+DuckDuckGo 검색 (기본) → httpx fetch → Groq LLM parse.
 사실만 추출, deadline 추측 금지.
 """
 
@@ -31,11 +31,11 @@ logger = structlog.get_logger()
 # ============================================================
 CATEGORY_QUERIES: dict[str, list[str]] = {
     "grant": [
-        "{query} crypto blockchain grant program 2026",
+        "{query} crypto blockchain grant program 2025 2026",
         "{query} web3 grant funding application open",
     ],
     "accelerator": [
-        "{query} crypto blockchain accelerator program 2026",
+        "{query} crypto blockchain accelerator program 2025 2026",
         "{query} web3 accelerator cohort application",
     ],
     "vc_cohort": [
@@ -96,7 +96,7 @@ class DiscoveryAgent(BaseAgent):
 
         self.log.info("discovery.start", query=query, category=category)
 
-        # 1. 검색 (Tavily API 또는 직접 URL)
+        # 1. 검색
         urls = await self._search(query, category, sources)
 
         if not urls:
@@ -144,12 +144,47 @@ class DiscoveryAgent(BaseAgent):
         category: ProgramCategory | None,
         sources: list[str],
     ) -> list[str]:
-        """Tavily API로 검색 → URL 목록 반환."""
+        """검색 → URL 목록 반환. DuckDuckGo 기본, Tavily 폴백."""
         # 직접 URL이 주어진 경우
         if sources:
             return sources
 
-        # Tavily API 검색
+        provider = self.config.search_provider
+
+        if provider == "duckduckgo":
+            return await self._search_ddg(query, category)
+        elif provider == "tavily":
+            return await self._search_tavily(query, category)
+        else:
+            self.log.warning("discovery.unknown_provider", provider=provider)
+            return await self._search_ddg(query, category)
+
+    async def _search_ddg(
+        self, query: str, category: ProgramCategory | None
+    ) -> list[str]:
+        """DuckDuckGo 검색 (API 키 불필요)."""
+        try:
+            from duckduckgo_search import DDGS
+
+            cat_key = category.value if category else "grant"
+            queries = CATEGORY_QUERIES.get(cat_key, CATEGORY_QUERIES["grant"])
+            search_query = queries[0].format(query=query)
+
+            with DDGS() as ddgs:
+                results = list(ddgs.text(search_query, max_results=7))
+
+            urls = [r["href"] for r in results if r.get("href")]
+            self.log.info("discovery.ddg_search_done", urls_found=len(urls))
+            return urls
+
+        except Exception as e:
+            self.log.error("discovery.ddg_search_error", error=str(e))
+            return []
+
+    async def _search_tavily(
+        self, query: str, category: ProgramCategory | None
+    ) -> list[str]:
+        """Tavily API 검색 (폴백)."""
         if not self.config.tavily_key:
             self.log.warning("discovery.no_tavily_key")
             return []
@@ -159,7 +194,6 @@ class DiscoveryAgent(BaseAgent):
 
             client = TavilyClient(api_key=self.config.tavily_key)
 
-            # 카테고리별 쿼리 구성
             cat_key = category.value if category else "grant"
             queries = CATEGORY_QUERIES.get(cat_key, CATEGORY_QUERIES["grant"])
             search_query = queries[0].format(query=query)
@@ -171,11 +205,11 @@ class DiscoveryAgent(BaseAgent):
             )
 
             urls = [r["url"] for r in response.get("results", [])]
-            self.log.info("discovery.search_done", urls_found=len(urls))
+            self.log.info("discovery.tavily_search_done", urls_found=len(urls))
             return urls
 
         except Exception as e:
-            self.log.error("discovery.search_error", error=str(e))
+            self.log.error("discovery.tavily_search_error", error=str(e))
             return []
 
     async def _fetch_page(self, url: str) -> str | None:
@@ -184,7 +218,7 @@ class DiscoveryAgent(BaseAgent):
             async with httpx.AsyncClient(
                 timeout=15.0,
                 follow_redirects=True,
-                headers={"User-Agent": "FundingBot/1.0"},
+                headers={"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) FundingBot/1.0"},
             ) as client:
                 resp = await client.get(url)
                 resp.raise_for_status()
@@ -210,7 +244,52 @@ class DiscoveryAgent(BaseAgent):
     async def _parse_opportunities(
         self, content: str, source_url: str
     ) -> list[dict]:
-        """LLM (Claude Haiku)으로 페이지 콘텐츠에서 기회 추출."""
+        """LLM으로 페이지 콘텐츠에서 기회 추출. Groq 기본, Anthropic 폴백."""
+        provider = self.config.llm_provider
+
+        if provider == "groq":
+            return await self._parse_with_groq(content, source_url)
+        elif provider == "anthropic":
+            return await self._parse_with_anthropic(content, source_url)
+        else:
+            return await self._parse_with_groq(content, source_url)
+
+    async def _parse_with_groq(
+        self, content: str, source_url: str
+    ) -> list[dict]:
+        """Groq (Llama) 로 파싱."""
+        if not self.config.groq_key:
+            self.log.warning("discovery.no_groq_key")
+            return []
+
+        try:
+            from groq import Groq
+
+            client = Groq(api_key=self.config.groq_key)
+
+            response = client.chat.completions.create(
+                model=self.config.llm_model_fast,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": PARSE_PROMPT + content,
+                    }
+                ],
+                max_tokens=2000,
+                temperature=0.1,
+            )
+
+            raw_text = response.choices[0].message.content.strip()
+            return self._extract_json(raw_text, source_url)
+
+        except Exception as e:
+            self.log.error("discovery.groq_error", error=str(e))
+            return []
+
+    async def _parse_with_anthropic(
+        self, content: str, source_url: str
+    ) -> list[dict]:
+        """Anthropic (Claude) 로 파싱 (폴백)."""
         if not self.config.anthropic_key:
             self.log.warning("discovery.no_anthropic_key")
             return []
@@ -231,9 +310,17 @@ class DiscoveryAgent(BaseAgent):
                 ],
             )
 
-            # 응답에서 JSON 추출
             raw_text = response.content[0].text.strip()
-            # JSON 배열 추출 (markdown 코드블록 안에 있을 수 있음)
+            return self._extract_json(raw_text, source_url)
+
+        except Exception as e:
+            self.log.error("discovery.anthropic_error", error=str(e))
+            return []
+
+    def _extract_json(self, raw_text: str, source_url: str) -> list[dict]:
+        """LLM 응답에서 JSON 배열 추출."""
+        try:
+            # markdown 코드블록 안에 있을 수 있음
             if "```" in raw_text:
                 raw_text = raw_text.split("```")[1]
                 if raw_text.startswith("json"):
@@ -258,7 +345,4 @@ class DiscoveryAgent(BaseAgent):
 
         except (json.JSONDecodeError, IndexError) as e:
             self.log.warning("discovery.parse_error", error=str(e))
-            return []
-        except Exception as e:
-            self.log.error("discovery.llm_error", error=str(e))
             return []
