@@ -26,7 +26,9 @@ from src.interface.handlers.profile_handler import (
     profile_command,
     start_command,
 )
+from src.interface.handlers.funding_handler import funding_command
 from src.interface.handlers.ranking_handler import ranking_command
+from src.interface.handlers.search_handler import search_command
 
 logger = structlog.get_logger()
 
@@ -59,6 +61,12 @@ def create_app(store: EntityStore) -> Application:
 
     # 랭킹 (Matching Agent 사용)
     app.add_handler(CommandHandler("ranking", ranking_command))
+
+    # 라이브 검색 (Discovery → Ingest → Verify → Match)
+    app.add_handler(CommandHandler("search", search_command))
+
+    # 프로필 기반 통합 펀딩 검색 (웹+소셜+참조)
+    app.add_handler(CommandHandler("funding", funding_command))
 
     logger.info("telegram.handlers_registered")
     return app

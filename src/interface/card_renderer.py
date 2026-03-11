@@ -31,7 +31,6 @@ def escape_md(text: str) -> str:
 STATUS_EMOJI: dict[str, str] = {
     "open": "🟢",
     "rolling": "🔵",
-    "deadline": "🟡",
     "upcoming": "⏳",
     "closed": "🔴",
     "unknown": "⚪",
@@ -41,7 +40,15 @@ CATEGORY_LABEL: dict[str, str] = {
     "grant": "💰 Grant",
     "accelerator": "🚀 Accelerator",
     "vc_cohort": "🏦 VC Cohort",
-    "ecosystem_builder": "🌱 Ecosystem Builder",
+    "builder_program": "🌱 Builder Program",
+    "residency": "🏠 Residency",
+    "fund": "💼 Fund",
+    "hackathon_pipeline": "🏆 Hackathon Pipeline",
+    "ecosystem_builder": "🌱 Ecosystem Builder",  # deprecated 호환
+    # display bucket labels
+    "grants": "💰 Grants",
+    "cohorts": "🚀 Cohorts",
+    "funds": "🏦 Funds",
 }
 
 
@@ -200,6 +207,62 @@ def render_daily_brief(brief: DailyBriefData) -> str:
     if not any([brief.deadline_soon, brief.new_today,
                 brief.top_opportunities, brief.changes]):
         lines.append(escape_md("새로운 업데이트가 없습니다."))
+
+    return "\n".join(lines)
+
+
+def render_funding_results(
+    cards: list[OpportunityCard],
+    project_name: str = "HOOT",
+    intent: str = "추천 순위",
+    web_count: int = 0,
+    social_count: int = 0,
+    ref_count: int = 0,
+    new_count: int = 0,
+    elapsed: float = 0.0,
+    max_items: int = 10,
+) -> str:
+    """통합 펀딩 검색 결과 → Telegram MarkdownV2 메시지.
+
+    /funding 커맨드 전용 출력 포맷.
+    """
+    if not cards:
+        return render_empty()
+
+    lines: list[str] = []
+
+    # 헤더
+    lines.append(f"🏆 *TOP FUNDING FOR {escape_md(project_name)}*")
+    lines.append(f"📊 Intent: {escape_md(intent)}")
+    lines.append("")
+
+    # 카드 렌더링
+    for i, card in enumerate(cards[:max_items], 1):
+        lines.append(render_opportunity_card(card, index=i))
+        lines.append("")
+
+    if len(cards) > max_items:
+        remaining = len(cards) - max_items
+        lines.append(escape_md(f"... 외 {remaining}건"))
+        lines.append("")
+
+    # 푸터: 출처 통계
+    footer_parts: list[str] = []
+    if web_count:
+        footer_parts.append(f"웹 {web_count}")
+    if social_count:
+        footer_parts.append(f"소셜 {social_count}")
+    if ref_count:
+        footer_parts.append(f"참조 {ref_count}")
+
+    if footer_parts:
+        lines.append(f"📊 출처: {escape_md(' │ '.join(footer_parts))}")
+
+    if new_count > 0:
+        lines.append(f"🆕 새로 발견: {escape_md(str(new_count))}개")
+
+    if elapsed > 0:
+        lines.append(f"⏱ 검색 시간: {escape_md(f'{elapsed:.1f}초')}")
 
     return "\n".join(lines)
 
