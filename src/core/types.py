@@ -30,24 +30,55 @@ else:
 # ============================================================
 
 class OrgType(StrEnum):
+    """ENTITY_MODEL.md org_type."""
     VC = "vc"
     ECOSYSTEM = "ecosystem"
     FOUNDATION = "foundation"
     ACCELERATOR = "accelerator"
+    ACCELERATOR_OPERATOR = "accelerator_operator"
+    HYBRID = "hybrid"
 
 
 class ProgramCategory(StrEnum):
-    """PRD 기준 4가지 카테고리."""
+    """ENTITY_MODEL.md 기준 7가지 program_type."""
     GRANT = "grant"                         # Grants ($10k-$200k, rolling, milestone based)
     ACCELERATOR = "accelerator"             # Accelerators (8-12 week cohort, demo day)
     VC_COHORT = "vc_cohort"                 # VC Cohorts (seed investment, $200k-$1M)
-    ECOSYSTEM_BUILDER = "ecosystem_builder"  # Ecosystem Builder Programs (grant + support)
+    BUILDER_PROGRAM = "builder_program"     # Builder Programs (grant + support, ecosystem)
+    RESIDENCY = "residency"                 # Time-bound residency programs
+    FUND = "fund"                           # Generic VC open form / fund
+    HACKATHON_PIPELINE = "hackathon_pipeline"  # Hackathon → funding pipeline
+    # 하위 호환: 기존 'ecosystem_builder' → 'builder_program'으로 마이그레이션 예정
+    ECOSYSTEM_BUILDER = "ecosystem_builder"  # DEPRECATED: builder_program 사용
+
+
+# ============================================================
+# Display Bucket 매핑 (ENTITY_MODEL.md)
+# ============================================================
+
+DISPLAY_BUCKET_MAP: dict[str, str] = {
+    "grant": "grants",
+    "accelerator": "cohorts",
+    "vc_cohort": "cohorts",
+    "builder_program": "grants",
+    "residency": "cohorts",
+    "fund": "funds",
+    "hackathon_pipeline": "cohorts",
+    "ecosystem_builder": "grants",  # deprecated 호환
+}
+
+# display_bucket → category 역매핑
+BUCKET_TO_CATEGORIES: dict[str, list[str]] = {
+    "grants": ["grant", "builder_program", "ecosystem_builder"],
+    "cohorts": ["accelerator", "vc_cohort", "residency", "hackathon_pipeline"],
+    "funds": ["fund"],
+}
 
 
 class OpportunityStatus(StrEnum):
+    """ENTITY_MODEL.md recruiting_status. 'deadline'은 status가 아님 — deadline_at 필드 참조."""
     OPEN = "open"
     ROLLING = "rolling"
-    DEADLINE = "deadline"
     UPCOMING = "upcoming"
     CLOSED = "closed"
     UNKNOWN = "unknown"
@@ -95,8 +126,9 @@ class SubmissionStatus(StrEnum):
 class RankingIntent(StrEnum):
     DEFAULT = "default"
     URGENT = "urgent"
-    HIGHEST_MONEY = "highest_money"
-    BEST_ECOSYSTEM_MATCH = "best_ecosystem_match"
+    BIGGEST_CHECK = "biggest_check"
+    READY_NOW = "ready_now"
+    BEST_FIT = "best_fit"
 
 
 # ============================================================
@@ -174,31 +206,60 @@ class Observation:
 
 
 @dataclass
+class SocialMonitoringEvent:
+    """소셜 탐색 provenance + alert 후보 관리."""
+    id: str
+    source_url: str
+    matched_account: str = ""
+    matched_account_type: str = ""
+    monitoring_round: str = ""
+    organization: str = ""
+    program: str = ""
+    category: str = ""
+    signal_type: str = ""
+    apply_url: str | None = None
+    source_tier: int = 5
+    confidence: float = 0.0
+    promoted_opportunity_id: str | None = None
+    verification_status: str = "pending"      # pending | verified | rejected
+    notified: bool = False
+    discovered_at: datetime | None = None
+    notified_at: datetime | None = None
+
+
+@dataclass
 class CompanyProfile:
+    """ENTITY_MODEL.md CompanyProfile. 매칭 기준 정보."""
     id: str
     company_name: str
     stage: CompanyStage | None = None
     sector_tags: list[str] = field(default_factory=list)
+    subsector_tags: list[str] = field(default_factory=list)
     projects: list[dict] = field(default_factory=list)   # [{name, priority, tags}]
     description: str | None = None
+    geography: str | None = None                         # 예: "South Korea", "Global"
+    funding_goal: str | None = None                      # 예: "$500K-$1M"
+    product_summary: str | None = None
+    target_ecosystems: list[str] = field(default_factory=list)  # 예: ["ethereum", "solana"]
     telegram_user_id: int | None = None                  # Telegram 사용자 연결
     updated_at: datetime | None = None
 
 
 @dataclass
 class FitRecommendation:
-    """PRD 기준 4-factor priority: fit*0.35 + urgency*0.35 + value*0.15 + confidence*0.15"""
+    """PRIORITY_ALGORITHM.md 5-factor priority scoring."""
     id: str
     opportunity_id: str
     company_profile_id: str
     project_name: str | None = None
-    fit_score: float = 0.0                  # sector match + stage match + ecosystem relevance
-    priority_score: float | None = None     # 4-factor 가중 합산
+    fit_score: float = 0.0
+    priority_score: float | None = None     # 5-factor 가중 합산
     why_fit: str | None = None
     next_action: str | None = None
-    urgency_score: float | None = None      # deadline 기반
-    expected_value: float | None = None     # funding amount 기반
-    confidence: float | None = None         # fact_confidence
+    urgency_score: float | None = None
+    actionability_score: float | None = None
+    expected_value: float | None = None
+    confidence: float | None = None
     computed_at: datetime | None = None
 
 
@@ -221,6 +282,8 @@ class OpportunityCard:
     deadline: str | None = None         # "2026-04-01" | "Rolling" | None
     days_left: int | None = None
     budget: str | None = None           # "$50K-$500K" | None
+    source_url: str | None = None       # 프로그램 정보 페이지 URL
+    description: str | None = None      # 프로그램 한줄 설명
 
     # fit 데이터 (있을 때만)
     fit_score: float | None = None
@@ -273,6 +336,7 @@ class DiscoveryInput:
     query: str
     category: ProgramCategory | None = None
     sources: list[str] = field(default_factory=list)
+    hint_queries: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -307,14 +371,15 @@ class MatchingInput:
 
 @dataclass
 class MatchingOutput:
-    """PRD 기준 4-factor."""
+    """PRIORITY_ALGORITHM.md 5-factor."""
     opportunity_id: str
     project_name: str | None = None
     fit_score: float = 0.0
-    priority_score: float = 0.0     # fit*0.35 + urgency*0.35 + value*0.15 + confidence*0.15
+    priority_score: float = 0.0     # 5-factor weighted sum
     why_fit: str = ""
     next_action: str = ""
     urgency_score: float = 0.0
+    actionability_score: float = 0.0
     expected_value: float = 0.0
     confidence: float = 0.0
 

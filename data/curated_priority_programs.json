@@ -1,0 +1,86 @@
+[
+  {
+    "organization": "Monad",
+    "program": "Nitro Accelerator",
+    "program_type": "vc_cohort",
+    "website": "https://nitroacc.xyz/",
+    "apply_url": "https://nitroacc.xyz/apply",
+    "funding_range": "Up to $500k per team",
+    "description": "12-week accelerator with mentorship and capital for founders building breakout startups on any chain.",
+    "sector_tags": "web3,crypto,accelerator,builder",
+    "industry_category": "Web3",
+    "status_note": "Applications close March 14, 2026"
+  },
+  {
+    "organization": "NEAR",
+    "program": "NEAR Funding",
+    "program_type": "grant",
+    "website": "https://www.near.org/funding",
+    "apply_url": "https://www.near.org/funding",
+    "funding_range": "",
+    "description": "Official NEAR funding hub covering ecosystem funding pathways, protocol rewards, grants, and builder support.",
+    "sector_tags": "web3,ai,grant,builder",
+    "industry_category": "Web3",
+    "status_note": ""
+  },
+  {
+    "organization": "Chainlink",
+    "program": "Chainlink BUILD",
+    "program_type": "builder_program",
+    "website": "https://chain.link/build",
+    "apply_url": "https://chainlinkcommunity.typeform.com/to/loz2DFeA",
+    "funding_range": "",
+    "description": "Ecosystem builder program providing enhanced support, tokenomics guidance, and Chainlink alignment for promising teams.",
+    "sector_tags": "web3,infra,builder,oracle",
+    "industry_category": "Web3",
+    "status_note": "Applications reviewed on a rolling basis"
+  },
+  {
+    "organization": "a16z",
+    "program": "Speedrun",
+    "program_type": "vc_cohort",
+    "website": "https://speedrun.a16z.com/",
+    "apply_url": "https://speedrun.a16z.com/apply",
+    "funding_range": "$750k-$1M for early-stage founders",
+    "description": "Crypto startup accelerator backed by a16z for ambitious founders building new internet and web3 products.",
+    "sector_tags": "web3,crypto,accelerator,infra,builder",
+    "industry_category": "Web3",
+    "status_note": ""
+  },
+  {
+    "organization": "Alliance",
+    "program": "Alliance Accelerator",
+    "program_type": "accelerator",
+    "website": "https://alliance.xyz/apply",
+    "apply_url": "https://alliance.xyz/apply",
+    "funding_range": "",
+    "description": "Crypto accelerator and founder community helping early teams with capital, mentorship, and investor access.",
+    "sector_tags": "web3,crypto,accelerator,builder,infra",
+    "industry_category": "Web3",
+    "status_note": ""
+  },
+  {
+    "organization": "Outlier Ventures",
+    "program": "Outlier Ventures Base Camp",
+    "program_type": "accelerator",
+    "website": "https://outlierventures.io/apply/form/",
+    "apply_url": "https://outlierventures.io/apply/form/",
+    "funding_range": "",
+    "description": "Web3 accelerator program for founders building crypto infrastructure, protocols, and AI-enabled web3 products.",
+    "sector_tags": "web3,crypto,accelerator,ai,infra",
+    "industry_category": "Web3",
+    "status_note": ""
+  },
+  {
+    "organization": "YZi Labs (Binance Labs)",
+    "program": "Binance Labs Incubation",
+    "program_type": "vc_cohort",
+    "website": "https://labs.binance.com",
+    "apply_url": "",
+    "funding_range": "",
+    "description": "Incubation and investment program for web3 founders backed by Binance Labs.",
+    "sector_tags": "web3,crypto,accelerator,builder,exchange",
+    "industry_category": "Web3",
+    "status_note": ""
+  }
+]

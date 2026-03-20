@@ -15,6 +15,7 @@ import pytest_asyncio
 
 from src.agents.base_agent import BaseAgent
 from src.core.config import Config
+from src.core.opportunity_matcher import MatchingOutcome
 from src.core.pipeline import FundingPipeline, PipelineResult
 from src.core.types import (
     AgentResult,
@@ -169,6 +170,58 @@ async def test_ingest_dedup(store: EntityStore, cfg: Config):
 
 
 @pytest.mark.asyncio
+async def test_ingest_seed_like_fund_is_idempotent(store: EntityStore, cfg: Config):
+    """legacy vc_cohort seed도 새 fund seed로 교정되고 opportunity는 중복 생성되지 않는다."""
+    pipeline = FundingPipeline(store=store, cfg=cfg)
+
+    legacy_raw = {
+        "organization": "1kx",
+        "program": "1kx Investment",
+        "category": "vc_cohort",
+        "status": "open",
+        "apply_url": None,
+        "program_url": "https://1kx.network/",
+        "source_url": "https://1kx.network/",
+        "org_type": "vc",
+        "source_tier": 3,
+        "fact_confidence": 0.4,
+    }
+    raw = {
+        "organization": "1kx",
+        "program": "1kx Investment",
+        "category": "fund",
+        "status": "open",
+        "apply_url": None,
+        "program_url": "https://1kx.network/",
+        "source_url": "https://1kx.network/",
+        "org_type": "vc",
+        "source_tier": 3,
+        "fact_confidence": 0.6,
+    }
+
+    opp1 = await pipeline._ingest_raw_opportunity(legacy_raw)
+    opp2 = await pipeline._ingest_raw_opportunity(raw)
+
+    assert opp1 is not None
+    assert opp2 == opp1
+
+    org = await store.get_organization_by_name("1kx")
+    assert org is not None
+    assert org.org_type == OrgType.VC
+    assert org.website_url == "https://1kx.network/"
+
+    program = await store.get_program_by_org_and_name(org.id, "1kx investment")
+    assert program is not None
+    assert program.category == ProgramCategory.FUND
+    assert program.program_url == "https://1kx.network/"
+
+    opps = await store.list_opportunities(limit=10)
+    assert len(opps) == 1
+    assert opps[0].source_tier == 3
+    assert opps[0].fact_confidence == 0.6
+
+
+@pytest.mark.asyncio
 async def test_ingest_empty_fields(store: EntityStore, cfg: Config):
     """필수 필드 없으면 None 반환."""
     pipeline = FundingPipeline(store=store, cfg=cfg)
@@ -176,6 +229,38 @@ async def test_ingest_empty_fields(store: EntityStore, cfg: Config):
     raw = {"organization": "", "program": ""}
     result = await pipeline._ingest_raw_opportunity(raw)
     assert result is None
+
+
+@pytest.mark.asyncio
+async def test_pipeline_records_social_monitoring_event_for_social_raw(store: EntityStore, cfg: Config):
+    pipeline = FundingPipeline(store=store, cfg=cfg)
+
+    raw = {
+        "organization": "Alliance",
+        "program": "Alliance Accelerator",
+        "category": "accelerator",
+        "status": "open",
+        "apply_url": "https://alliance.xyz/apply",
+        "source_url": "https://x.com/alliancedao/status/1234567890123456789",
+        "source_type": "social",
+        "source_tier": 5,
+        "confidence": 0.45,
+        "matched_account": "Alliance",
+        "matched_account_type": "accelerator_operator",
+        "social_signal_type": "applications_open",
+        "social_monitoring_round": "ecosystem-operators",
+    }
+
+    opp_id = await pipeline._ingest_raw_opportunity(raw)
+    assert opp_id is not None
+
+    await pipeline._record_social_monitoring_event(raw, opp_id)
+    events = await store.list_social_monitoring_events(limit=10)
+
+    assert len(events) == 1
+    assert events[0].promoted_opportunity_id == opp_id
+    assert events[0].monitoring_round == "ecosystem-operators"
+    assert events[0].signal_type == "applications_open"
 
 
 # ============================================================
@@ -193,6 +278,22 @@ def test_parse_budget_amount():
     assert pipeline_cls._parse_budget_amount("$200,000") == 200000.0
     assert pipeline_cls._parse_budget_amount(None) is None
     assert pipeline_cls._parse_budget_amount("TBD") is None
+
+
+def test_parse_category_supports_fund_and_builder_program():
+    """current entity model categories를 pipeline이 이해해야 한다."""
+    pipeline_cls = FundingPipeline.__new__(FundingPipeline)
+
+    assert pipeline_cls._parse_category("fund", None) == ProgramCategory.FUND
+    assert pipeline_cls._parse_category("vc_fund", None) == ProgramCategory.FUND
+    assert (
+        pipeline_cls._parse_category("builder_program", None)
+        == ProgramCategory.BUILDER_PROGRAM
+    )
+    assert (
+        pipeline_cls._parse_category("residency", None)
+        == ProgramCategory.RESIDENCY
+    )
 
 
 # ============================================================
@@ -250,6 +351,7 @@ async def test_pipeline_with_mock_discovery(seeded_store: EntityStore, cfg: Conf
     assert result.total_ingested == 1
     assert result.total_verified == 1
     assert result.total_matched == 1
+    assert len(result.ingested_opp_ids) == 1
     assert result.elapsed_ms > 0
 
 
@@ -269,5 +371,32 @@ async def test_pipeline_partial_failure(seeded_store: EntityStore, cfg: Config):
 
     assert result.total_discovered == 0
     assert result.total_ingested == 0
+    assert result.ingested_opp_ids == []
     assert len(result.errors) >= 1
     assert "Discovery failed" in result.errors[0]
+
+
+@pytest.mark.asyncio
+async def test_pipeline_matching_uses_shared_matcher(seeded_store: EntityStore, cfg: Config):
+    pipeline = FundingPipeline(store=seeded_store, cfg=cfg)
+    result = PipelineResult()
+
+    pipeline.opportunity_matcher.match_batch = AsyncMock(
+        return_value=[
+            MatchingOutcome(opportunity_id="opp_1", matched=True),
+            MatchingOutcome(
+                opportunity_id="opp_2",
+                matched=False,
+                error="profile missing",
+            ),
+        ]
+    )
+
+    await pipeline._match_ingested_opportunities(
+        ingested_opp_ids=["opp_1", "opp_2"],
+        company_profile_id="cp_test",
+        result=result,
+    )
+
+    assert result.total_matched == 1
+    assert result.errors == ["Matching failed for opp_2: profile missing"]

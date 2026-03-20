@@ -13,12 +13,12 @@ This report explains which Claude-native compatibility files were seeded or dete
 
 ## Risky Local Guidance
 
-- Risky directories detected: `0`
-- Local guides currently present: `0`
+- Risky directories detected: `1`
+- Local guides currently present: `1`
 - Local guides missing: `0`
 
 ### Present Guides
-- none
+- `src/db/CLAUDE.md` -> database access boundary
 
 ## Next Steps
 

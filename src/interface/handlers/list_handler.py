@@ -11,9 +11,10 @@ import structlog
 from telegram import Update
 from telegram.ext import ContextTypes
 
-from src.core.types import OpportunityCard, ProgramCategory
+from src.core.types import BUCKET_TO_CATEGORIES, OpportunityCard, ProgramCategory
 from src.db.entity_store import EntityStore
 from src.interface.card_renderer import render_empty, render_error, render_ranked_list
+from src.interface.opportunity_filters import filter_current_cards
 
 logger = structlog.get_logger()
 
@@ -45,9 +46,10 @@ async def _handle_list_command(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
     category: ProgramCategory | None = None,
+    display_bucket: str | None = None,
     title: str = "펀딩 기회 목록",
 ) -> None:
-    """공통 리스트 커맨드 처리."""
+    """공통 리스트 커맨드 처리. display_bucket 우선, category 폴백."""
     store: EntityStore = context.bot_data["store"]
 
     try:
@@ -56,12 +58,13 @@ async def _handle_list_command(
             company_profile_id=None,
             min_confidence=0.75,
             category=category,
+            display_bucket=display_bucket,
         )
 
-        cards = _opportunities_to_cards(rows)
+        cards = filter_current_cards(_opportunities_to_cards(rows))
 
         if not cards:
-            cat_str = category.value if category else None
+            cat_str = display_bucket or (category.value if category else None)
             text = render_empty(cat_str)
         else:
             text = render_ranked_list(cards, title=title)
@@ -83,10 +86,10 @@ async def _handle_list_command(
 async def grants_command(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
-    """/grants — Grant 프로그램 목록."""
+    """/grants — Grant 프로그램 목록 (grants display bucket)."""
     await _handle_list_command(
         update, context,
-        category=ProgramCategory.GRANT,
+        display_bucket="grants",
         title="💰 Grant 프로그램",
     )
 
@@ -94,22 +97,22 @@ async def grants_command(
 async def cohorts_command(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
-    """/cohorts — VC Cohort 목록."""
+    """/cohorts — Cohort 프로그램 목록 (cohorts display bucket)."""
     await _handle_list_command(
         update, context,
-        category=ProgramCategory.VC_COHORT,
-        title="🏦 VC Cohort 프로그램",
+        display_bucket="cohorts",
+        title="🚀 Cohort 프로그램",
     )
 
 
 async def funds_command(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
-    """/funds — Accelerator 목록."""
+    """/funds — Fund 프로그램 목록 (funds display bucket)."""
     await _handle_list_command(
         update, context,
-        category=ProgramCategory.ACCELERATOR,
-        title="🚀 Accelerator 프로그램",
+        display_bucket="funds",
+        title="🏦 Fund 프로그램",
     )
 
 
@@ -124,7 +127,7 @@ async def all_command(
             company_profile_id=None,
             min_confidence=0.80,  # /all은 더 높은 기준
         )
-        cards = _opportunities_to_cards(rows)
+        cards = filter_current_cards(_opportunities_to_cards(rows))
 
         if not cards:
             text = render_empty()

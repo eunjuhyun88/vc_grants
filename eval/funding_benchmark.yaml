@@ -1,0 +1,147 @@
+{
+  "version": 1,
+  "description": "Goal-seeking funding discovery benchmark for the Funding Intelligence Agent. This file is JSON-compatible YAML so the runner can load it without an extra YAML dependency.",
+  "defaults": {
+    "top_n": 10,
+    "intent": "best_fit",
+    "mode_sequence": ["fast", "deep"],
+    "max_runs": 6,
+    "max_total_runs": 12,
+    "plateau_window": 2,
+    "confidence_floor": 0.60,
+    "fit_floor": 0.65,
+    "source_tier_max": 3,
+    "stale_hours": 168
+  },
+  "profiles": {
+    "HOOT": {
+      "fixture": "HOOT"
+    }
+  },
+  "cases": [
+    {
+      "id": "hoot_actionable_top10",
+      "profile": "HOOT",
+      "goal_type": "actionable_strategy",
+      "recovery_mode": "actionable_recovery",
+      "summary": "HOOT 기준 action list에 가까운 top 10을 확보한다.",
+      "anchors": [
+        "Nitro Accelerator",
+        "Speedrun",
+        "Alliance Accelerator",
+        "Ethereum Ecosystem Support Program",
+        "NEAR Funding",
+        "Chainlink BUILD"
+      ],
+      "goal_thresholds": {
+        "actionable_top10_count": { "gte": 4 },
+        "high_fit_verified_count": { "gte": 2 },
+        "profile_specific_recall": { "gte": 0.34 },
+        "missing_anchor_count": { "lte": 4 }
+      }
+    },
+    {
+      "id": "hoot_actionable_strategy",
+      "profile": "HOOT",
+      "goal_type": "actionable_strategy",
+      "recovery_mode": "actionable_recovery",
+      "summary": "HOOT 기준 바로 제출 가능한 strategy-grade top 10을 확보한다.",
+      "anchors": [
+        "Nitro Accelerator",
+        "Speedrun",
+        "Alliance Accelerator",
+        "NEAR Funding",
+        "Chainlink BUILD"
+      ],
+      "target_ecosystems": ["Monad", "NEAR", "Ethereum", "Solana", "Arbitrum"],
+      "goal_thresholds": {
+        "output_ready_top10_count": { "gte": 3 },
+        "actionable_top10_count": { "gte": 4 },
+        "cohort_or_builder_in_top10_count": { "gte": 2 },
+        "why_fit_coverage": { "gte": 0.6 },
+        "next_action_coverage": { "gte": 0.6 }
+      }
+    },
+    {
+      "id": "vc_ecosystem_cohort_recall",
+      "profile": "HOOT",
+      "goal_type": "cohort_recall",
+      "recovery_mode": "cohort_recovery",
+      "summary": "VC + ecosystem cohort 축의 중요한 프로그램을 놓치지 않는다.",
+      "mode_sequence": ["deep", "deep"],
+      "anchors": [
+        "Nitro Accelerator",
+        "Speedrun",
+        "Alliance Accelerator",
+        "Outlier Ventures",
+        "Binance Labs",
+        "Chainlink BUILD"
+      ],
+      "goal_thresholds": {
+        "actionable_top10_count": { "gte": 3 },
+        "profile_specific_recall": { "gte": 0.34 },
+        "missing_anchor_count": { "lte": 4 }
+      }
+    },
+    {
+      "id": "rolling_grants_coverage",
+      "profile": "HOOT",
+      "goal_type": "grant_coverage",
+      "recovery_mode": "grant_recovery",
+      "summary": "rolling grants 축이 action list와 anchor recall 모두에서 유지된다.",
+      "anchors": [
+        "Ethereum Ecosystem Support Program",
+        "NEAR Funding",
+        "Solana Foundation Grants",
+        "Arbitrum Grants",
+        "Chainlink Community Grants"
+      ],
+      "goal_thresholds": {
+        "actionable_top10_count": { "gte": 4 },
+        "profile_specific_recall": { "gte": 0.40 },
+        "missing_anchor_count": { "lte": 3 }
+      }
+    },
+    {
+      "id": "hoot_funding_map",
+      "profile": "HOOT",
+      "goal_type": "funding_map",
+      "recovery_mode": "ecosystem_coverage_recovery",
+      "summary": "HOOT 기준 funding map에 필요한 ecosystem coverage를 확보한다.",
+      "anchors": [
+        "Nitro Accelerator",
+        "NEAR Funding",
+        "Ethereum Ecosystem Support Program",
+        "Solana Foundation Grants",
+        "Arbitrum Grants"
+      ],
+      "target_ecosystems": ["Monad", "NEAR", "Ethereum", "Solana", "Arbitrum", "Avalanche", "Polygon"],
+      "goal_thresholds": {
+        "funding_map_coverage": { "gte": 0.35 },
+        "tier1_ecosystem_count": { "gte": 3 },
+        "tier2_ecosystem_count": { "gte": 3 },
+        "matched_ecosystem_count": { "gte": 2 }
+      }
+    },
+    {
+      "id": "org_dossier_monad",
+      "profile": "HOOT",
+      "goal_type": "org_dossier",
+      "recovery_mode": "dossier_recovery",
+      "summary": "Monad 기준 cohort/builder context를 dossier-grade로 모을 수 있어야 한다.",
+      "mode_sequence": ["deep", "deep"],
+      "target_org": "Monad",
+      "anchors": [
+        "Nitro Accelerator",
+        "Monad Momentum",
+        "Mach Accelerator",
+        "Founder Residency"
+      ],
+      "goal_thresholds": {
+        "dossier_fact_completeness": { "gte": 0.6 },
+        "dossier_program_count": { "gte": 3 },
+        "official_source_ratio": { "gte": 0.5 }
+      }
+    }
+  ]
+}

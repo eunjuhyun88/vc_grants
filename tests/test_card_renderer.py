@@ -10,14 +10,19 @@ import pytest
 
 from src.core.types import DailyBriefData, DossierCard, OpportunityCard
 from src.interface.card_renderer import (
+    _is_stale_date_text,
     escape_md,
     render_daily_brief,
     render_dossier_card,
     render_empty,
     render_error,
+    render_funding_map,
+    render_org_dossier,
     render_opportunity_card,
     render_ranked_list,
+    render_social_alert_candidate,
 )
+from src.research.dossier_builder import FundingMap, OrganizationDossier, ProgramDossier
 
 
 # ============================================================
@@ -122,6 +127,20 @@ def test_render_opportunity_card_no_deadline():
     assert "D-" not in text  # 마감일 없음
 
 
+def test_render_opportunity_card_hides_stale_deadline():
+    card = OpportunityCard(
+        organization="Test Org",
+        program="Old Cohort",
+        category="accelerator",
+        status="open",
+        apply_url="https://test.com/apply",
+        confidence=0.8,
+        deadline="2026-03-01",
+    )
+    text = render_opportunity_card(card)
+    assert "2026\\-03\\-01" not in text
+
+
 # ============================================================
 # Ranked List Tests
 # ============================================================
@@ -173,6 +192,121 @@ def test_render_dossier_card():
     assert "paradigm.xyz" in text
     assert "50" in text
     assert "DeFi" in text
+
+
+def test_render_funding_map(sample_card):
+    """Funding map 렌더링."""
+    sample_card.description = "12-week accelerator with builder mentorship"
+    sample_card.source_url = "https://nitroacc.xyz"
+    funding_map = FundingMap(
+        project_name="HOOT",
+        tier1_ecosystems=["Bittensor", "NEAR"],
+        tier2_ecosystems=["Ethereum", "Solana"],
+        matched_ecosystems=["Monad", "Chainlink"],
+        covered_target_ecosystems=["NEAR", "Solana"],
+    )
+    text = render_funding_map(
+        project_name="HOOT",
+        funding_map=funding_map,
+        cards=[sample_card],
+        coverage=0.5,
+    )
+    assert "FUNDING MAP FOR HOOT" in text
+    assert "Bittensor" in text
+    assert "Chainlink" in text
+    assert "커버리지" in text
+    assert "accelerator with builder mentorship" in text
+    assert "[공식](https://nitroacc.xyz)" in text
+    assert "[지원](https://esp.ethereum.foundation)" in text
+
+
+def test_render_org_dossier(sample_card):
+    """Organization dossier 상세 렌더링."""
+    dossier = OrganizationDossier(
+        organization="Monad",
+        ecosystems=["Monad"],
+        programs=["Nitro Accelerator"],
+        partners=["Paradigm"],
+        mentors=["Electric Capital"],
+        portfolio_analogs=["Aethir"],
+        matched_programs=["Nitro Accelerator"],
+        official_urls=["https://monad.xyz", "https://nitroacc.xyz"],
+        program_details=[
+            ProgramDossier(
+                organization="Monad",
+                program="Nitro Accelerator",
+                program_type="vc_cohort",
+                description="12-week accelerator with mentorship and capital.",
+                official_url="https://nitroacc.xyz",
+                apply_url="https://nitroacc.xyz/apply",
+                funding_range="Up to $500k per team",
+                deadline_text="March 14, 2026",
+                status_note="Applications close March 14, 2026",
+            )
+        ],
+    )
+    dossier_card = DossierCard(
+        org_name="Monad",
+        org_type="ecosystem",
+        website="https://monad.xyz",
+        confidence=0.8,
+    )
+    text = render_org_dossier(
+        dossier=dossier,
+        org_card=dossier_card,
+        opportunity_cards=[sample_card],
+    )
+    assert "Monad" in text
+    assert "Nitro Accelerator" in text
+    assert "Paradigm" in text
+    assert "Electric Capital" in text
+    assert "accelerator with mentorship and capital" in text
+    assert "March 14, 2026" in text
+    assert "[공식](https://nitroacc.xyz)" in text
+    assert "[지원](https://nitroacc.xyz/apply)" in text
+
+
+def test_render_org_dossier_hides_stale_program_date(sample_card):
+    dossier = OrganizationDossier(
+        organization="Monad",
+        program_details=[
+            ProgramDossier(
+                organization="Monad",
+                program="Old Program",
+                deadline_text="March 01, 2026",
+                status_note=None,
+            )
+        ],
+    )
+    text = render_org_dossier(dossier=dossier, org_card=None, opportunity_cards=[sample_card])
+    assert "March 01, 2026" not in text
+
+
+def test_render_social_alert_candidate():
+    text = render_social_alert_candidate(
+        {
+            "organization_name": "Monad",
+            "program_name": "Nitro Accelerator",
+            "category": "vc_cohort",
+            "status": "open",
+            "apply_url": "https://nitroacc.xyz/apply",
+            "program_url": "https://nitroacc.xyz",
+            "source_url": "https://x.com/monad/status/2021278828484567142",
+            "matched_account": "monad",
+            "monitoring_round": "ecosystem-operators",
+            "signal_type": "applications_open",
+            "deadline_at": "2026-03-14T00:00:00+00:00",
+            "days_left": 1,
+            "fact_confidence": 0.92,
+        }
+    )
+    assert "NEW VERIFIED SOCIAL FUNDING SIGNAL" in text
+    assert "Monad" in text
+    assert "Nitro Accelerator" in text
+    assert "2026\\-03\\-14" in text
+    assert "[공식](https://nitroacc.xyz)" in text
+    assert "[지원](https://nitroacc.xyz/apply)" in text
+    assert "[소셜 근거](https://x.com/monad/status/2021278828484567142)" in text
 
 
 # ============================================================
@@ -230,3 +364,9 @@ def test_render_error_custom():
     """커스텀 에러 메시지."""
     text = render_error("커스텀 에러 발생")
     assert "커스텀 에러 발생" in text
+
+
+def test_is_stale_date_text():
+    assert _is_stale_date_text("2026-03-01") is True
+    assert _is_stale_date_text("March 01, 2026") is True
+    assert _is_stale_date_text("Rolling") is False

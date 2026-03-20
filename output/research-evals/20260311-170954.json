@@ -1,0 +1,401 @@
+{
+  "generated_at": "2026-03-11T17:09:54.357779+00:00",
+  "case_count": 1,
+  "overall_goal_met": false,
+  "cases": [
+    {
+      "case_id": "hoot_actionable_top10",
+      "summary": "HOOT 기준 action list에 가까운 top 10을 확보한다.",
+      "profile": "HOOT",
+      "anchors": [
+        "Nitro Accelerator",
+        "Speedrun",
+        "Alliance Accelerator",
+        "Ethereum Ecosystem Support Program",
+        "NEAR Funding",
+        "Chainlink BUILD"
+      ],
+      "goal_thresholds": {
+        "actionable_top10_count": {
+          "gte": 4
+        },
+        "high_fit_verified_count": {
+          "gte": 2
+        },
+        "profile_specific_recall": {
+          "gte": 0.34
+        },
+        "missing_anchor_count": {
+          "lte": 4
+        }
+      },
+      "stop_reason": "max_runs_reached",
+      "runs": [
+        {
+          "attempt": 1,
+          "mode": "fast",
+          "search_hints": [],
+          "applied_actions": [],
+          "metrics": {
+            "top_result_count": 10,
+            "actionable_top10_count": 0,
+            "high_fit_verified_count": 0,
+            "matched_anchor_count": 0,
+            "missing_anchor_count": 6,
+            "profile_specific_recall": 0.0,
+            "stale_top10_count": 8,
+            "average_priority_score": 0.5637,
+            "social_candidate_count": 0,
+            "social_candidate_ratio": 0.0,
+            "candidate_to_ingested_ratio": 0.54,
+            "rounds_executed": 1,
+            "matched_anchors": []
+          },
+          "goal": {
+            "met": false,
+            "failed_metrics": [
+              "actionable_top10_count",
+              "high_fit_verified_count",
+              "profile_specific_recall",
+              "missing_anchor_count"
+            ],
+            "checks": [
+              {
+                "metric": "actionable_top10_count",
+                "value": 0,
+                "rule": {
+                  "gte": 4
+                },
+                "passed": false,
+                "detail": "0 >= 4"
+              },
+              {
+                "metric": "high_fit_verified_count",
+                "value": 0,
+                "rule": {
+                  "gte": 2
+                },
+                "passed": false,
+                "detail": "0 >= 2"
+              },
+              {
+                "metric": "profile_specific_recall",
+                "value": 0.0,
+                "rule": {
+                  "gte": 0.34
+                },
+                "passed": false,
+                "detail": "0.0 >= 0.34"
+              },
+              {
+                "metric": "missing_anchor_count",
+                "value": 6,
+                "rule": {
+                  "lte": 4
+                },
+                "passed": false,
+                "detail": "6 <= 4"
+              }
+            ]
+          },
+          "progress_score": 0.1667,
+          "result_counts": {
+            "web_count": 0,
+            "social_count": 0,
+            "reference_count": 50,
+            "total_raw": 50,
+            "total_deduped": 27,
+            "total_ingested": 27,
+            "new_discovered": 27,
+            "elapsed_seconds": 23.505,
+            "errors": []
+          },
+          "round_log": [
+            {
+              "round": 0,
+              "source": "reference",
+              "raw": 50,
+              "new_progs": 27,
+              "elapsed_s": 0.0
+            }
+          ],
+          "next_actions": [
+            "escalate_to_deep_search",
+            "expand_apply_and_official_page_queries",
+            "bias_official_domains_and_reference_sources",
+            "add_profile_specific_anchor_and_thesis_variants",
+            "expand_target_ecosystem_and_vc_cohort_queries"
+          ],
+          "top_results": [
+            {
+              "opportunity_id": "opp_c5ac2789e8ce",
+              "organization": "Decentralized Cloud Foundation",
+              "program": "Crust Grants Program",
+              "category": "grant",
+              "status": "unknown",
+              "apply_url": "https://wiki.crust.network/docs/en/crustGrants",
+              "days_left": null,
+              "source_tier": 3,
+              "confidence": 0.495,
+              "fit_score": 0.9,
+              "priority_score": 0.6635000000000001,
+              "why_fit": "높은 적합도: grant 프로그램에서 ai infra, ai, infra, decentralized 정합성 높음",
+              "next_action": "상세 요건 확인 후 지원 준비",
+              "source_chain": [
+                "https://wiki.crust.network/docs/en/crustGrants"
+              ],
+              "updated_at": "2026-03-12T02:09:37.282770"
+            },
+            {
+              "opportunity_id": "opp_473ad9ceea16",
+              "organization": "MolochDAO",
+              "program": "MolochDAO Grants",
+              "category": "grant",
+              "status": "unknown",
+              "apply_url": "https://molochdao.com/",
+              "days_left": null,
+              "source_tier": 5,
+              "confidence": 0.355,
+              "fit_score": 0.833,
+              "priority_score": 0.6189999999999999,
+              "why_fit": "높은 적합도: grant 프로그램에서 ai infra, ai, infra, decentralized 정합성 높음",
+              "next_action": "상세 요건 확인 후 지원 준비",
+              "source_chain": [
+                "https://molochdao.com/"
+              ],
+              "updated_at": "2026-03-12T02:09:40.545103"
+            },
+            {
+              "opportunity_id": "opp_df792fdd7f9f",
+              "organization": "Avalanche",
+              "program": "Avalanche Grants & Programs",
+              "category": "grant",
+              "status": "unknown",
+              "apply_url": "https://build.avax.network/grants#programs",
+              "days_left": null,
+              "source_tier": 3,
+              "confidence": 0.495,
+              "fit_score": 0.717,
+              "priority_score": 0.608,
+              "why_fit": "높은 적합도: grant 프로그램에서 ai, blockchain, base, physical_ai 정합성 높음",
+              "next_action": "상세 요건 확인 후 지원 준비",
+              "source_chain": [
+                "https://build.avax.network/grants#programs"
+              ],
+              "updated_at": "2026-03-12T02:09:34.337539"
+            },
+            {
+              "opportunity_id": "opp_484aaaa03e0d",
+              "organization": "Polygon Network",
+              "program": "Polygon Ecosystem Funds",
+              "category": "grant",
+              "status": "unknown",
+              "apply_url": "https://polygon.technology/funds",
+              "days_left": null,
+              "source_tier": 1,
+              "confidence": 0.63,
+              "fit_score": 0.717,
+              "priority_score": 0.5794999999999999,
+              "why_fit": "높은 적합도: grant 프로그램에서 ai, blockchain, ethereum, physical_ai 정합성 높음",
+              "next_action": "상세 요건 확인 후 지원 준비",
+              "source_chain": [
+                "https://polygon.technology/funds"
+              ],
+              "updated_at": "2026-03-12T02:09:44.290255"
+            },
+            {
+              "opportunity_id": "opp_1f740d133732",
+              "organization": "NVIDIA Inception",
+              "program": "NVIDIA Inception (GPU/AI infra)",
+              "category": "accelerator",
+              "status": "unknown",
+              "apply_url": "https://www.nvidia.com/en-us/startups/inception/",
+              "days_left": null,
+              "source_tier": 5,
+              "confidence": 0.315,
+              "fit_score": 0.783,
+              "priority_score": 0.5680000000000001,
+              "why_fit": "높은 적합도: accelerator 프로그램에서 ai infra, ai, infra, gpu 정합성 높음",
+              "next_action": "상세 요건 확인 후 지원 준비",
+              "source_chain": [
+                "https://www.nvidia.com/en-us/startups/inception/"
+              ],
+              "updated_at": "2026-03-12T02:09:50.215874"
+            },
+            {
+              "opportunity_id": "opp_e0893a989a40",
+              "organization": "Boost VC",
+              "program": "Boost VC",
+              "category": "accelerator",
+              "status": "open",
+              "apply_url": "https://www.boost.vc/?utm_source=substack&utm_medium=email",
+              "days_left": null,
+              "source_tier": 3,
+              "confidence": 0.535,
+              "fit_score": 0.533,
+              "priority_score": 0.558,
+              "why_fit": "중간 적합도: accelerator 프로그램에서 ai, base, physical_ai, physical ai 일부 매칭 · 현재 상태 open",
+              "next_action": "상세 요건 확인 후 지원 준비",
+              "source_chain": [
+                "https://www.boost.vc/?utm_source=substack&utm_medium=email"
+              ],
+              "updated_at": "2026-03-12T02:09:47.345929"
+            },
+            {
+              "opportunity_id": "opp_996b73fb7eca",
+              "organization": "Arbitrum Foundation",
+              "program": "Trailblazer AI Grant Program",
+              "category": "grant",
+              "status": "open",
+              "apply_url": "https://docs.google.com/forms/d/e/1FAIpQLSe-GF7UcUOuyEMsgnVpLFrG_W83RAchaPPqOCD83pZaZXskgw/viewform",
+              "days_left": null,
+              "source_tier": 3,
+              "confidence": 0.535,
+              "fit_score": 0.533,
+              "priority_score": 0.55,
+              "why_fit": "중간 적합도: grant 프로그램에서 ai, arbitrum, physical_ai, physical ai 일부 매칭 · 현재 상태 open",
+              "next_action": "상세 요건 확인 후 지원 준비",
+              "source_chain": [
+                "https://docs.google.com/forms/d/e/1FAIpQLSe-GF7UcUOuyEMsgnVpLFrG_W83RAchaPPqOCD83pZaZXskgw/viewform"
+              ],
+              "updated_at": "2026-03-12T02:09:34.241168"
+            },
+            {
+              "opportunity_id": "opp_7db2b58eb99f",
+              "organization": "Solana Foundation",
+              "program": "Solana Foundation Grants",
+              "category": "grant",
+              "status": "unknown",
+              "apply_url": "https://solana.org/grants",
+              "days_left": null,
+              "source_tier": 1,
+              "confidence": 0.67,
+              "fit_score": 0.583,
+              "priority_score": 0.5165,
+              "why_fit": "중간 적합도: grant 프로그램에서 ai, solana, base, physical_ai 일부 매칭",
+              "next_action": "상세 요건 확인 후 지원 준비",
+              "source_chain": [
+                "https://solana.org/grants"
+              ],
+              "updated_at": "2026-03-12T02:09:31.033412"
+            },
+            {
+              "opportunity_id": "opp_b323c932c77b",
+              "organization": "Arbitrum Foundation",
+              "program": "Arbitrum Foundation Grant Program",
+              "category": "grant",
+              "status": "unknown",
+              "apply_url": "https://arbitrum.foundation/grants",
+              "days_left": null,
+              "source_tier": 1,
+              "confidence": 0.67,
+              "fit_score": 0.533,
+              "priority_score": 0.4915,
+              "why_fit": "중간 적합도: grant 프로그램에서 ai, arbitrum, physical_ai, physical ai 일부 매칭",
+              "next_action": "상세 요건 확인 후 지원 준비",
+              "source_chain": [
+                "https://arbitrum.foundation/grants"
+              ],
+              "updated_at": "2026-03-12T02:09:31.963849"
+            },
+            {
+              "opportunity_id": "opp_d0065db1169a",
+              "organization": "Tulip Garden",
+              "program": "Tulip Farmers Fund",
+              "category": "grant",
+              "status": "unknown",
+              "apply_url": "https://tulipprotocol.notion.site/Developer-Tulip-Farmers-Fund-Resources-796fb02d8162446eb39fd9bbcc953679",
+              "days_left": null,
+              "source_tier": 3,
+              "confidence": 0.495,
+              "fit_score": 0.467,
+              "priority_score": 0.483,
+              "why_fit": "중간 적합도: grant 프로그램에서 protocol, solana, physical_ai, physical ai 일부 매칭",
+              "next_action": "상세 요건 확인 후 지원 준비",
+              "source_chain": [
+                "https://tulipprotocol.notion.site/Developer-Tulip-Farmers-Fund-Resources-796fb02d8162446eb39fd9bbcc953679"
+              ],
+              "updated_at": "2026-03-12T02:09:46.049648"
+            }
+          ]
+        }
+      ],
+      "final_metrics": {
+        "top_result_count": 10,
+        "actionable_top10_count": 0,
+        "high_fit_verified_count": 0,
+        "matched_anchor_count": 0,
+        "missing_anchor_count": 6,
+        "profile_specific_recall": 0.0,
+        "stale_top10_count": 8,
+        "average_priority_score": 0.5637,
+        "social_candidate_count": 0,
+        "social_candidate_ratio": 0.0,
+        "candidate_to_ingested_ratio": 0.54,
+        "rounds_executed": 1,
+        "matched_anchors": []
+      },
+      "goal": {
+        "met": false,
+        "failed_metrics": [
+          "actionable_top10_count",
+          "high_fit_verified_count",
+          "profile_specific_recall",
+          "missing_anchor_count"
+        ],
+        "checks": [
+          {
+            "metric": "actionable_top10_count",
+            "value": 0,
+            "rule": {
+              "gte": 4
+            },
+            "passed": false,
+            "detail": "0 >= 4"
+          },
+          {
+            "metric": "high_fit_verified_count",
+            "value": 0,
+            "rule": {
+              "gte": 2
+            },
+            "passed": false,
+            "detail": "0 >= 2"
+          },
+          {
+            "metric": "profile_specific_recall",
+            "value": 0.0,
+            "rule": {
+              "gte": 0.34
+            },
+            "passed": false,
+            "detail": "0.0 >= 0.34"
+          },
+          {
+            "metric": "missing_anchor_count",
+            "value": 6,
+            "rule": {
+              "lte": 4
+            },
+            "passed": false,
+            "detail": "6 <= 4"
+          }
+        ]
+      },
+      "recommended_actions": [
+        "escalate_to_deep_search",
+        "expand_apply_and_official_page_queries",
+        "bias_official_domains_and_reference_sources",
+        "add_profile_specific_anchor_and_thesis_variants",
+        "expand_target_ecosystem_and_vc_cohort_queries"
+      ]
+    }
+  ],
+  "recommended_actions": [
+    "escalate_to_deep_search",
+    "expand_apply_and_official_page_queries",
+    "bias_official_domains_and_reference_sources",
+    "add_profile_specific_anchor_and_thesis_variants",
+    "expand_target_ecosystem_and_vc_cohort_queries"
+  ]
+}

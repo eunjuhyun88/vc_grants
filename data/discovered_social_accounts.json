@@ -1,0 +1,129 @@
+{
+  "version": 1,
+  "accounts": [
+    {
+      "organization": "a16z",
+      "handle": "a16z",
+      "search_names": [
+        "a16z crypto",
+        "Andreessen Horowitz",
+        "a16zcrypto"
+      ],
+      "account_type": "vc",
+      "priority": "tier1",
+      "ecosystems": [
+        "ethereum",
+        "base"
+      ],
+      "programs": [
+        "Speedrun",
+        "CSX"
+      ],
+      "watch_terms": [
+        "speedrun",
+        "startup accelerator",
+        "applications open",
+        "investment",
+        "portfolio"
+      ],
+      "official_urls": [
+        "https://a16z.com/speedrun/",
+        "https://a16z.com/"
+      ],
+      "region": ""
+    },
+    {
+      "organization": "Alliance",
+      "handle": "alliance",
+      "search_names": [
+        "Alliance",
+        "Alliance DAO",
+        "alliancedao",
+        "alliance"
+      ],
+      "account_type": "accelerator_operator",
+      "priority": "tier1",
+      "ecosystems": [
+        "ethereum",
+        "solana"
+      ],
+      "programs": [
+        "Alliance Accelerator"
+      ],
+      "watch_terms": [
+        "accelerator",
+        "cohort",
+        "applications open",
+        "demo day",
+        "apply",
+        "alliance accelerator"
+      ],
+      "official_urls": [
+        "https://alliance.xyz/apply",
+        "https://alliance.xyz/"
+      ],
+      "region": ""
+    },
+    {
+      "organization": "Alliance",
+      "handle": "alliancedao",
+      "search_names": [
+        "Alliance",
+        "Alliance DAO",
+        "alliancedao",
+        "alliance"
+      ],
+      "account_type": "accelerator_operator",
+      "priority": "tier1",
+      "ecosystems": [
+        "ethereum",
+        "solana"
+      ],
+      "programs": [
+        "Alliance Accelerator"
+      ],
+      "watch_terms": [
+        "accelerator",
+        "cohort",
+        "applications open",
+        "demo day",
+        "apply",
+        "alliance accelerator"
+      ],
+      "official_urls": [
+        "https://alliance.xyz/apply",
+        "https://alliance.xyz/"
+      ],
+      "region": ""
+    },
+    {
+      "organization": "Outlier Ventures",
+      "handle": "outlierventures",
+      "search_names": [
+        "Outlier Ventures",
+        "Outlier",
+        "outliervc"
+      ],
+      "account_type": "accelerator_operator",
+      "priority": "tier1",
+      "ecosystems": [
+        "ethereum",
+        "polygon"
+      ],
+      "programs": [
+        "Outlier Ventures Base Camp"
+      ],
+      "watch_terms": [
+        "base camp",
+        "accelerator",
+        "applications open",
+        "web3 accelerator"
+      ],
+      "official_urls": [
+        "https://outlierventures.io/apply/form/",
+        "https://outlierventures.io/"
+      ],
+      "region": ""
+    }
+  ]
+}

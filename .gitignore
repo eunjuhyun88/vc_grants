@@ -37,3 +37,8 @@ Thumbs.db
 
 # Node (memento-kit)
 node_modules/
+
+ALL_API_KEYS.md
+*.fundraise.env
+.env
+.env.*

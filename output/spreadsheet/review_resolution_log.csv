@@ -1,0 +1,37 @@
+original_organization,original_program,source,resolved_organization,resolved_program,program_type,review_required,review_notes
+2048,2048,excel_accelerators,2048 Ventures,Pre-Seed Fast Track,vc_fund,no,resolved from official 2048 Ventures pre-seed fast track page
+500,500,excel_accelerators,500 Global,500 Global,accelerator,no,merged into canonical 500 Global accelerator row
+a16z,Speedrun,excel_accelerators,a16z,Speedrun,vc_cohort,no,official a16z speedrun page confirms naming
+ai2incubator.,ai2incubator.,excel_accelerators,AI2 Incubator,AI2 Incubator,accelerator,no,normalized slug-like organization name from official domain
+alchemistaccelerator.,alchemistaccelerator.,excel_accelerators,Alchemist Accelerator,Alchemist Accelerator,accelerator,no,normalized slug-like organization name and canonical homepage
+AllianceDao,AllianceDao,excel_accelerators,Alliance,Alliance Accelerator,accelerator,no,normalized legacy AllianceDAO naming to Alliance Accelerator
+Antropic,Antropic grants,excel_accelerators,Anthropic,Anthropic Startup Program,accelerator,no,resolved from Anthropic startup program pages
+Bahamut,Bahamut Foundation Grants,excel_grants,Bahamut Foundation,Bahamut Grants,grant,no,resolved from official Bahamut grants page
+Base,Base Builder Grants,excel_grants,Base,Base Builder Grants,grant,no,resolved from Base funding documentation
+Base,BaseCamp Awards,excel_grants,Base,BaseCamp Awards,grant,yes,"likely related to Base onchain awards, but exact canonical program name still needs manual confirmation"
+Btv,The Mint,excel_accelerators,BTV,The Mint,accelerator,no,resolved from official BTV The Mint page
+CoinMarketCap,CoinMarketCap,excel_accelerators,CoinMarketCap,CMC Labs,accelerator,no,normalized program name from CMC Labs page
+embed.conviction,embed.conviction,excel_accelerators,Conviction,Embed,accelerator,yes,"organization/program normalized, but current official apply surface still needs manual confirmation"
+Eranyc,Founders Fellowship,excel_accelerators,ERA,ERA Accelerator,accelerator,no,resolved from ERA apply page
+Ethereum Foundation,Ethereum Ecosystem Support Program,excel_grants,Ethereum Foundation,Ethereum Ecosystem Support Program,grant,no,official ESP page confirms program
+Fi,Founder Institute,excel_accelerators,Founder Institute,Founder Institute Core Program,accelerator,no,resolved from Founder Institute core program page
+firstround,firstround,excel_accelerators,First Round Capital,First Round,accelerator,yes,"organization normalized from domain, but exact current accelerator/program label still needs manual confirmation"
+Greylock Edge,Greylock Edge,excel_accelerators,Greylock,Greylock Edge,accelerator,no,normalized duplicate Greylock Edge alias row
+HFO,HFO Residency,excel_accelerators,HF0,HF0 Residency,accelerator,no,normalized HF0 spelling from official domain
+Immutable,Immutable zkEVM Grants,excel_grants,Immutable,Immutable zkEVM Grants,grant,yes,"official Immutable site found, but exact current grant program page was not verified"
+Interchain Foundation,Interchain Foundation Grants,excel_grants,Interchain Foundation,Interchain Foundation Grants,grant,yes,"official Interchain builders program found, but exact grant-page mapping remains ambiguous"
+Iterative Incubator,Iterative Incubator (AI dev tools),excel_accelerators,Iterative Incubator,Iterative Incubator (AI dev tools),accelerator,yes,no reliable official incubator page was verified; keep out of final import set
+Joinef,Entrepreneur First,excel_accelerators,Entrepreneur First,Entrepreneur First,accelerator,no,resolved from official Entrepreneur First site
+LAUNCH,LAUNCH,excel_accelerators,LAUNCH Accelerator,LAUNCH Accelerator,accelerator,no,resolved from official LAUNCH Accelerator page
+Menlovc,Menlo Ventures X Anthropic,excel_accelerators,Menlo Ventures,Anthology Fund,vc_fund,no,resolved from Menlo Ventures Anthology Fund pages
+Monad,Monad,excel_accelerators,Monad,Monad Momentum,accelerator,no,normalized program name from Monad Momentum site
+Mozilla AI Accelerator,Mozilla AI Accelerator (Open source local AI),excel_accelerators,Mozilla.ai,Builders in Residence Program,accelerator,no,resolved from Mozilla.ai Builders in Residence page
+Oasis,Oasis Ecosystem Grants,excel_grants,Oasis,Oasis Ecosystem Grants,grant,no,official Oasis ecosystem grants url already present
+OpenAI Converge,OpenAI Converge,excel_accelerators,OpenAI Startup Fund,Converge,accelerator,no,normalized organization and program naming from OpenAI fund surface
+OrangeDao,OrangeDao,excel_accelerators,OrangeDAO,OrangeDAO,accelerator,no,normalized organization casing from official domain
+Outlierventures,Outlier,excel_accelerators,Outlier Ventures,Outlier Ventures Base Camp,accelerator,no,resolved from official Outlier Ventures apply form
+Plugandplaytechcenter,Plug and Play AI,excel_accelerators,Plug and Play Tech Center,Plug and Play AI,accelerator,no,normalized organization name from official domain
+Sequoia Arc,Sequoia Arc (AI-inclusive seed),excel_accelerators,Sequoia Capital,Sequoia Arc,accelerator,no,normalized duplicate Sequoia Arc alias row
+Sequoiacap,Sequoia Arc,excel_accelerators,Sequoia Capital,Sequoia Arc,accelerator,no,resolved from official Sequoia Arc page
+Typeform,Gery Look,excel_accelerators,Greylock,Greylock Edge,accelerator,no,resolved from Greylock Edge page; prior row captured Typeform host instead of program
+Village Global,Village Global (AI network),excel_accelerators,Village Global,Velocity,accelerator,no,resolved from Village Global Velocity pages

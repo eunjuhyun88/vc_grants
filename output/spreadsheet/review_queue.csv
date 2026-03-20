@@ -1,0 +1,37 @@
+organization,program,program_type,source,status_note,date_note,funding_range,max_amount,website,apply_url,industry_category,sector_tags,description,review_required,review_notes
+2048,2048,accelerator,excel_accelerators,진행중,,500K-1.5M,,https://x.com/2048vc/status/1985824545165430841?s=46,https://airtable.com/appV89PYGo3zN47f9/pagNjeYwHGADSGIs3/form?prefill_Introd+By+Type=Direct&hide_Introd+By+Type=true&prefill_Fast+Track+Opt+In=Yes,Web2,,Focus: Web2 | Submission notes: https://docs.google.com/document/d/1qnMh2gcJSlVoGi5u8FhEBEgBb7bOMD2NNBd1wtV5STc/edit?usp=sharing,yes,program cell is numeric-like and needs review
+500,500,accelerator,excel_accelerators,진행중,,,,https://mena.aplica.500.co,,Web2,,Focus: Web2,yes,program cell is numeric-like and needs review
+a16z,Speedrun,vc_cohort,excel_accelerators,진행중,,$750k–$1M for ~7–10%,,https://a16z.com/speedrun/,,Web2,,Focus: Web2 | Submission notes: https://docs.google.com/document/d/1DFT2Pi_T1CpZaf5eglDw9X99f5Xpx-e8jZldo8AC9bg/edit?usp=sharing,yes,organization inferred from url
+Antropic,Antropic grants,accelerator,excel_accelerators,진행중,,https://docs.google.com/forms/d/e/1FAIpQLSchDkB0UMUisYZPcL41CVA_fS73RF99jXyJRoumiEEF7_fpJw/viewform,,,,Web2,,Focus: Web2,yes,missing url
+Bahamut,Bahamut Foundation Grants,grant,excel_grants,,마감 2025-09-02 / 2025-09-26,,,,,,,Bahamut 네트워크 성장.,yes,missing official url
+Base,Base Builder Grants,grant,excel_grants,,활성 / 2025-06-03,1-5 ETH,,,,,,초기 아이디어 실험.,yes,missing official url
+Base,BaseCamp Awards,grant,excel_grants,,마감 2025-09-02 / 2025-09-26,$250K,,,,,,혁신 앱 보상.,yes,missing official url
+Btv,The Mint,accelerator,excel_accelerators,26년 예정,,$500k for 10%,,https://btv.vc/the-mint,,Web2,,Focus: Web2,yes,organization inferred from url
+Eranyc,Founders Fellowship,accelerator,excel_accelerators,진행중,,$150k for 5–10%,,https://www.eranyc.com/,,Web2,,Focus: Web2,yes,organization inferred from url
+Ethereum Foundation,Ethereum Ecosystem Support Program,grant,excel_grants,,활성 / 2025-08-05,최대 $30K (작은 프로젝트),,https://esp.ethereum.foundation,,,,"인프라, 도구, 암호 연구.",yes,missing official url
+Fi,Founder Institute,accelerator,excel_accelerators,진행중,,equity-based program with undisclosed funding,,https://fi.co/,,Web2,,Focus: Web2,yes,organization inferred from url
+Immutable,Immutable zkEVM Grants,grant,excel_grants,,활성 / 2025-06-03,최대 500K IMX,,,,,,게임 스튜디오 지원.,yes,missing official url
+Interchain Foundation,Interchain Foundation Grants,grant,excel_grants,,활성 / 2025-06-03,$50K-$300K CHF,,,,,,Cosmos/IBC 연구.,yes,missing official url
+Iterative Incubator,Iterative Incubator (AI dev tools),accelerator,excel_accelerators,,,,,,,,,,yes,missing url
+Joinef,Entrepreneur First,accelerator,excel_accelerators,진행중,,$250k for ~9%,,https://www.joinef.com/,,Web2,,Focus: Web2,yes,organization inferred from url
+LAUNCH,LAUNCH,accelerator,excel_accelerators,진행중,,$125k for 6–7% .   시리즈 A 이전 스타트업을 위해 설계된 영향력이 큰 14주 프로그램입니다. 코호트당 7개 회사만 선택하고 7%의 지분을 위해 12만 5천 달러를 투자합니다.,,,,Web2,,Focus: Web2,yes,missing url
+Menlovc,Menlo Ventures X Anthropic,accelerator,excel_accelerators,진행중,,"AI 혁신을 선도합니다
+저희는 Menlo Ventures와 Anthropic 의 파트너십을 통해 탄생한 획기적인 1억 달러 규모의 펀드인  Anthology Fund .  Anthology Fund Application
+The Anthology Fund is a $100M initiative between Menlo Ventures and Anthropic to fund the next generation of AI startups. We invest in Seed and Series A startups with check sizes starting at $100K. Read more about the fund and frequently asked questions here.
+
+기금이 지원하는 스타트업은 다음을 받습니다:
+Anthropic의 AI 모델에 대한 접근
+30,000달러의 무료 인류 크레딧
+전문 지식, 지침 및 전담 개발자 관계 지원을 위해 Anthropic 팀에 정기적으로 액세스
+AI 분야의 창업자와 건축업자의 강력한 네트워크
+Menlo 및 Anthropic 리더 및 개발자 관계 팀과의 분기별 심층 분석
+Menlo 파트너 및 Daniela Amodei 사장과 최고 제품 책임자인 Mike Krieger와 같은 Anthropic 리더가 주최하는 격년 데모 데이
+Menlo Ventures 회사의 크레딧
+Menlo Ventures의 SF 및 Menlo Park 사무실의 일부 작업 공간 액세스",,https://menlovc.com/anthology-fund-application/,https://menlovc.com/anthology-fund-application/,Web2,,Focus: Web2,yes,organization inferred from url
+Mozilla AI Accelerator,Mozilla AI Accelerator (Open source local AI),accelerator,excel_accelerators,,,,,,,,,,yes,missing url
+Oasis,Oasis Ecosystem Grants,grant,excel_grants,,활성 / 2025-06-04,$10K+,,https://oasisprotocol.org/ecosystem-grants,,,defi,Oasis 프라이버시.,yes,missing official url
+Outlierventures,Outlier,accelerator,excel_accelerators,,,,,https://outlierventures.io/apply/form/,https://outlierventures.io/apply/form/,Web3,,Focus: Web3,yes,organization inferred from url
+Plugandplaytechcenter,Plug and Play AI,accelerator,excel_accelerators,,,,,https://www.plugandplaytechcenter.com/ai,,,,,yes,organization inferred from url
+Sequoiacap,Sequoia Arc,accelerator,excel_accelerators,진행중,,$1M,,https://www.sequoiacap.com/arc/,,Web2,,Focus: Web2,yes,organization inferred from url
+Typeform,Gery Look,accelerator,excel_accelerators,26년 예정,,,,https://greylock.com/edge/,https://form.typeform.com/to/a9xz4TxD,,,,yes,organization inferred from url
+Village Global,Village Global (AI network),accelerator,excel_accelerators,,,,,,,,,,yes,missing url

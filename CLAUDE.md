@@ -24,7 +24,7 @@ This repository is configured with Memento Kit.
 | --- | --- |
 | collaboration rules | `README.md`, `AGENTS.md` |
 | Claude-native layer | `.claude/README.md`, `docs/CLAUDE_COMPATIBILITY.md` |
-| runtime context memory | `.agent-context/briefs/`, `.agent-context/handoffs/` |
+| runtime context memory | `.agent-context/status/`, `.agent-context/briefs/`, `.agent-context/handoffs/` |
 | architecture map | `ARCHITECTURE.md` |
 | system intent | `docs/SYSTEM_INTENT.md` |
 | doc router | `docs/README.md` |
@@ -40,4 +40,5 @@ This repository is configured with Memento Kit.
 - Do not treat `.agent-context/` as authority.
 - Keep `CLAUDE.md` short; put reusable expert workflows in `.claude/agents/` or `.claude/commands/`.
 - Use `ctx:checkpoint` for semantic memory.
-- Use `ctx:compact` and `ctx:restore` instead of relying on long chat history.
+- Use `ctx:status` first, then `ctx:restore` for deeper detail instead of relying on long chat history.
+- Use `ctx:compact` after meaningful work so the latest status surface stays current.

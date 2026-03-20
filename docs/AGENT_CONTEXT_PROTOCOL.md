@@ -10,6 +10,7 @@ Prevent context loss and reduce restart cost across long-running agent work.
 
 - `snapshot`: machine state
 - `checkpoint`: semantic memory
+- `status`: single latest resume surface
 - `brief`: fast resume
 - `handoff`: fuller transfer
 - `claim`: multi-agent ownership and path boundary
@@ -19,6 +20,7 @@ Prevent context loss and reduce restart cost across long-running agent work.
 - `npm run ctx:save`
 - `npm run ctx:checkpoint`
 - `npm run ctx:compact`
+- `npm run ctx:status`
 - `npm run ctx:restore -- --mode brief`
 - `npm run ctx:restore -- --mode handoff`
 - `npm run ctx:check -- --strict`
@@ -29,6 +31,7 @@ Prevent context loss and reduce restart cost across long-running agent work.
 ## 4) Rules
 
 - use checkpoints for non-trivial work
+- use `ctx:status` as the default first resume surface
 - use briefs for fast resume
 - keep pinned facts durable and minimal
 - do not commit runtime memory

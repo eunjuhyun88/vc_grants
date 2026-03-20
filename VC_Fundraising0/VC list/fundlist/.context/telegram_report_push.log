@@ -1,0 +1,10 @@
+[2026-02-26T23:49:41+00:00] dry-run chat_id=-1003312376000 sections=3
+[2026-02-26T23:49:53+00:00] sent chat_id=-1003312376000 sections=3 chunks=3
+[2026-02-26T23:50:30+00:00] sent chat_id=-1003312376000 sections=3 chunks=3
+[2026-02-27T01:46:42+00:00] dry-run chat_id=-1003312376000 sections=5
+[2026-02-27T01:47:59+00:00] sent chat_id=-1003312376000 sections=5 chunks=5
+[2026-02-27T01:58:07+00:00] sent chat_id=-1003312376000 sections=5 chunks=5
+[2026-02-27T01:59:42+00:00] dry-run chat_id=-1003312376000 sections=5
+[2026-02-27T02:00:13+00:00] dry-run chat_id=-1003312376000 sections=5
+[2026-02-27T02:00:27+00:00] sent chat_id=-1003312376000 sections=5 chunks=5
+[2026-02-27T02:52:32+00:00] sent chat_id=-1003312376000 sections=5 chunks=5

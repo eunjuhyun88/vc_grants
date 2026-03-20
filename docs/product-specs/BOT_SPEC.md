@@ -181,7 +181,7 @@ async def ranking(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     /ranking [intent] — 사용자 프로필 기준 상위 기회.
 
-    intent 옵션: default, urgent, highest_money, best_ecosystem_match
+    intent 옵션: default, urgent, biggest_check, ready_now, best_fit
     기본: default
 
     1. 프로필 조회

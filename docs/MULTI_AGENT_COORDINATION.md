@@ -37,6 +37,12 @@ Use `npm run coord:claim -- ...` with:
 - `--summary`
 - one or more `--path` prefixes on feature branches by default
 
+Path guidance:
+
+- use normal scoped prefixes such as `src/search/` or `docs/design-docs/` whenever possible
+- use `--path "."` only when you are intentionally resuming or owning the whole dirty worktree on that feature branch
+- treat `--path "."` as a repo-root claim; it blocks overlap against every repo path and should be released as soon as the broad resume/migration step ends
+
 Claims are stored under `.agent-context/coordination/claims/`.
 
 The claim command rejects:

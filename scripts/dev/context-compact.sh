@@ -4,7 +4,7 @@ set -euo pipefail
 usage() {
 	echo "Usage: bash scripts/dev/context-compact.sh [--source <snapshot.md>] [--checkpoint <checkpoint.md>] [--work-id <id>] [--max-lines <n>]"
 	echo ""
-	echo "Generates branch-local brief and handoff artifacts from the latest snapshot and semantic checkpoint."
+	echo "Generates branch-local status, brief, and handoff artifacts from the latest snapshot and semantic checkpoint."
 }
 
 sanitize() {
@@ -89,10 +89,11 @@ HANDOFF_DIR="$BASE_DIR/handoffs"
 COMPACT_DIR="$BASE_DIR/compact"
 RUNTIME_DIR="$BASE_DIR/runtime"
 STATE_DIR="$BASE_DIR/state"
+STATUS_DIR="$BASE_DIR/status"
 PINNED_FILE="$BASE_DIR/pinned-facts.md"
 CATALOG_FILE="$BASE_DIR/catalog.tsv"
 
-mkdir -p "$BRIEF_DIR" "$HANDOFF_DIR" "$COMPACT_DIR" "$RUNTIME_DIR" "$STATE_DIR"
+mkdir -p "$BRIEF_DIR" "$HANDOFF_DIR" "$COMPACT_DIR" "$RUNTIME_DIR" "$STATE_DIR" "$STATUS_DIR"
 
 if [ -z "$SOURCE_FILE" ]; then
 	SOURCE_FILE="$(ls -1t "$SNAPSHOT_DIR"/*.md 2>/dev/null | head -n 1 || true)"
@@ -178,6 +179,8 @@ BRIEF_WORK_FILE="$BRIEF_DIR/${WORK_SAFE}.md"
 BRIEF_BRANCH_FILE="$BRIEF_DIR/${BRANCH_SAFE}-latest.md"
 HANDOFF_WORK_FILE="$HANDOFF_DIR/${WORK_SAFE}.md"
 HANDOFF_BRANCH_FILE="$HANDOFF_DIR/${BRANCH_SAFE}-latest.md"
+STATUS_WORK_FILE="$STATUS_DIR/${WORK_SAFE}.md"
+STATUS_BRANCH_FILE="$STATUS_DIR/${BRANCH_SAFE}-latest.md"
 STATE_FILE="$STATE_DIR/${WORK_SAFE}.json"
 COMPAT_FILE="$COMPACT_DIR/$BRANCH_SAFE-latest.md"
 
@@ -185,11 +188,11 @@ if [ -z "$CURRENT_OBJECTIVE" ] || printf '%s' "$CURRENT_OBJECTIVE" | grep -Eiq '
 	WARNINGS+=("objective is still stage-like; checkpoint objective should replace automation stage names")
 fi
 
-if [ -z "$NEXT_ACTIONS" ] || [ "$NEXT_ACTIONS" = "- none" ]; then
+if [ -z "$NEXT_ACTIONS" ]; then
 	WARNINGS+=("next actions missing from semantic checkpoint")
 fi
 
-if [ -z "$OPEN_QUESTIONS" ] || [ "$OPEN_QUESTIONS" = "- none" ]; then
+if [ -z "$OPEN_QUESTIONS" ]; then
 	WARNINGS+=("open questions missing from semantic checkpoint")
 fi
 
@@ -238,6 +241,60 @@ if [ "${#WARNINGS[@]}" -gt 0 ]; then
 	done
 	WARNING_BLOCK="$(printf '%s' "$WARNING_BLOCK" | trim_non_empty 20)"
 fi
+
+{
+	echo "# Work Status"
+	echo ""
+	echo "- Generated: $TS_HUMAN"
+	echo "- Branch: $BRANCH"
+	echo "- Head: $HEAD_SHA"
+	echo "- Work ID: $WORK_ID_EFFECTIVE"
+	echo "- Surface: $SURFACE"
+	echo "- Status: $STATUS"
+	echo ""
+	echo "## Current Objective"
+	echo "${CURRENT_OBJECTIVE:-- none}"
+	echo ""
+	echo "## Do Next"
+	echo "${NEXT_ACTIONS:-- none}"
+	echo ""
+	echo "## Why This Matters"
+	echo "${WHY_NOW:-- none}"
+	echo ""
+	echo "## Open Questions"
+	echo "${OPEN_QUESTIONS:-- none}"
+	echo ""
+	echo "## Exit Criteria"
+	echo "${EXIT_CRITERIA:-- none}"
+	echo ""
+	echo "## Read First"
+	echo "$READ_THESE_FIRST"
+	echo ""
+	echo "## Owned Files"
+	echo "${OWNED_FILES:-- none}"
+	echo ""
+	echo "## Validation Snapshot"
+	echo "$VALIDATION_SNAPSHOT"
+	echo ""
+	echo "## Artifact Pointers"
+	echo "- checkpoint: ${CHECKPOINT_FILE#$ROOT_DIR/}"
+	echo "- status: ${STATUS_WORK_FILE#$ROOT_DIR/}"
+	echo "- brief: ${BRIEF_WORK_FILE#$ROOT_DIR/}"
+	echo "- handoff: ${HANDOFF_WORK_FILE#$ROOT_DIR/}"
+	echo "- state json: ${STATE_FILE#$ROOT_DIR/}"
+	echo ""
+	echo "## Resume Commands"
+	echo "- npm run safe:status"
+	echo "- npm run ctx:status"
+	echo "- npm run ctx:restore -- --mode brief"
+	echo "- npm run ctx:restore -- --mode handoff"
+	echo ""
+	echo "## Risks / Warnings"
+	echo "$WARNING_BLOCK"
+} | awk -v limit="$MAX_LINES" '
+	NR <= limit {print}
+	NR == limit + 1 {print ""; print "_(truncated by ctx:compact max-lines budget)_"}
+' > "$STATUS_WORK_FILE"
 
 {
 	echo "# Work Brief"
@@ -348,9 +405,11 @@ fi
 	echo "${NOTES:-- none}"
 } > "$HANDOFF_WORK_FILE"
 
+cp "$STATUS_WORK_FILE" "$STATUS_BRANCH_FILE"
 cp "$BRIEF_WORK_FILE" "$BRIEF_BRANCH_FILE"
 cp "$HANDOFF_WORK_FILE" "$HANDOFF_BRANCH_FILE"
 cp "$BRIEF_WORK_FILE" "$COMPAT_FILE"
+cp "$STATUS_WORK_FILE" "$BASE_DIR/latest-status-$BRANCH_SAFE.md"
 cp "$BRIEF_WORK_FILE" "$BASE_DIR/latest-brief-$BRANCH_SAFE.md"
 cp "$HANDOFF_WORK_FILE" "$BASE_DIR/latest-handoff-$BRANCH_SAFE.md"
 cp "$COMPAT_FILE" "$BASE_DIR/latest-compact-$BRANCH_SAFE.md"
@@ -375,6 +434,7 @@ cat > "$STATE_FILE" <<EOF
     "check": "unknown",
     "build": "unknown"
   },
+  "statusPath": "$(json_escape "${STATUS_WORK_FILE#$ROOT_DIR/}")",
   "briefPath": "$(json_escape "${BRIEF_WORK_FILE#$ROOT_DIR/}")",
   "handoffPath": "$(json_escape "${HANDOFF_WORK_FILE#$ROOT_DIR/}")"
 }
@@ -385,6 +445,14 @@ if [ ! -f "$CATALOG_FILE" ]; then
 fi
 
 TS_KEY="$(date '+%Y%m%d-%H%M%S')"
+printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+	"$TS_KEY" \
+	"status" \
+	"$BRANCH" \
+	"$WORK_ID_EFFECTIVE" \
+	"$SURFACE" \
+	"$STATUS" \
+	"${STATUS_WORK_FILE#$ROOT_DIR/}" >> "$CATALOG_FILE"
 printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
 	"$TS_KEY" \
 	"brief" \
@@ -410,6 +478,7 @@ if [ "$HAS_CHECKPOINT" -eq 1 ]; then
 else
 	echo "[ctx:compact] checkpoint: none (degraded fallback brief/handoff)"
 fi
+echo "[ctx:compact] status: ${STATUS_BRANCH_FILE#$ROOT_DIR/}"
 echo "[ctx:compact] brief: ${BRIEF_BRANCH_FILE#$ROOT_DIR/}"
 echo "[ctx:compact] handoff: ${HANDOFF_BRANCH_FILE#$ROOT_DIR/}"
 echo "[ctx:compact] compatibility output: ${COMPAT_FILE#$ROOT_DIR/}"

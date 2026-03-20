@@ -1,0 +1,326 @@
+{
+  "version": 1,
+  "default_signal_terms": [
+    "applications open",
+    "grant",
+    "grants",
+    "funding",
+    "accelerator",
+    "cohort",
+    "builder program",
+    "residency",
+    "ecosystem fund",
+    "investment",
+    "invested",
+    "backed"
+  ],
+  "accounts": [
+    {
+      "organization": "Monad",
+      "handle": "monad",
+      "search_names": ["Monad", "Monad Foundation", "monad_xyz"],
+      "account_type": "l1",
+      "priority": "tier1",
+      "ecosystems": ["monad"],
+      "programs": [
+        "Nitro Accelerator",
+        "Monad Momentum",
+        "Mach Accelerator",
+        "Founder Residency"
+      ],
+      "watch_terms": [
+        "nitro accelerator",
+        "momentum",
+        "mach accelerator",
+        "founder residency",
+        "builder program",
+        "applications open"
+      ]
+    },
+    {
+      "organization": "a16z",
+      "handle": "a16zcrypto",
+      "search_names": ["a16z crypto", "Andreessen Horowitz"],
+      "account_type": "vc",
+      "priority": "tier1",
+      "ecosystems": ["ethereum", "base"],
+      "programs": ["Speedrun", "CSX"],
+      "watch_terms": [
+        "speedrun",
+        "startup accelerator",
+        "applications open",
+        "investment",
+        "portfolio"
+      ]
+    },
+    {
+      "organization": "Alliance",
+      "handle": "alliancedao",
+      "search_names": ["Alliance", "Alliance DAO"],
+      "account_type": "accelerator_operator",
+      "priority": "tier1",
+      "ecosystems": ["ethereum", "solana"],
+      "programs": ["Alliance Accelerator"],
+      "watch_terms": [
+        "accelerator",
+        "cohort",
+        "applications open",
+        "demo day"
+      ]
+    },
+    {
+      "organization": "Outlier Ventures",
+      "handle": "outliervc",
+      "search_names": ["Outlier Ventures", "Outlier"],
+      "account_type": "accelerator_operator",
+      "priority": "tier1",
+      "ecosystems": ["ethereum", "polygon"],
+      "programs": ["Outlier Ventures Base Camp"],
+      "watch_terms": [
+        "base camp",
+        "accelerator",
+        "applications open",
+        "web3 accelerator"
+      ]
+    },
+    {
+      "organization": "Binance Labs",
+      "handle": "BinanceLabs",
+      "search_names": ["Binance Labs"],
+      "account_type": "vc",
+      "priority": "tier1",
+      "ecosystems": ["bnb chain"],
+      "programs": ["Binance Labs Incubation"],
+      "watch_terms": [
+        "incubation",
+        "mvb",
+        "applications open",
+        "investment"
+      ]
+    },
+    {
+      "organization": "Chainlink",
+      "handle": "chainlink",
+      "search_names": ["Chainlink", "Chainlink Labs"],
+      "account_type": "ecosystem",
+      "priority": "tier1",
+      "ecosystems": ["ethereum"],
+      "programs": ["Chainlink BUILD", "Chainlink Community Grants"],
+      "watch_terms": [
+        "build",
+        "community grants",
+        "builder program",
+        "applications open"
+      ]
+    },
+    {
+      "organization": "NEAR",
+      "handle": "NEARProtocol",
+      "search_names": ["NEAR", "NEAR Foundation"],
+      "account_type": "foundation",
+      "priority": "tier1",
+      "ecosystems": ["near"],
+      "programs": ["NEAR Funding"],
+      "watch_terms": [
+        "funding",
+        "ai",
+        "grants",
+        "builder program"
+      ]
+    },
+    {
+      "organization": "Ethereum",
+      "handle": "ethereum",
+      "search_names": ["Ethereum", "Ethereum Foundation"],
+      "account_type": "foundation",
+      "priority": "tier1",
+      "ecosystems": ["ethereum"],
+      "programs": ["Ethereum Ecosystem Support Program"],
+      "watch_terms": [
+        "ecosystem support program",
+        "esp",
+        "grant",
+        "funding"
+      ]
+    },
+    {
+      "organization": "Bittensor",
+      "handle": "opentensor",
+      "search_names": ["Bittensor", "OpenTensor"],
+      "account_type": "ecosystem",
+      "priority": "tier1",
+      "ecosystems": ["bittensor"],
+      "programs": ["Bittensor Ecosystem Funding"],
+      "watch_terms": [
+        "subnet",
+        "grants",
+        "funding",
+        "ecosystem"
+      ]
+    },
+    {
+      "organization": "Solana",
+      "handle": "solana",
+      "search_names": ["Solana", "Solana Foundation"],
+      "account_type": "foundation",
+      "priority": "tier2",
+      "ecosystems": ["solana"],
+      "programs": ["Solana Foundation Grants", "Solana Colosseum"],
+      "watch_terms": [
+        "grants",
+        "colosseum",
+        "accelerator",
+        "applications open"
+      ]
+    },
+    {
+      "organization": "Arbitrum",
+      "handle": "arbitrum",
+      "search_names": ["Arbitrum", "Arbitrum Foundation"],
+      "account_type": "foundation",
+      "priority": "tier2",
+      "ecosystems": ["arbitrum"],
+      "programs": ["Arbitrum Grants"],
+      "watch_terms": [
+        "grants",
+        "trailblazer",
+        "applications open",
+        "ecosystem fund"
+      ]
+    },
+    {
+      "organization": "Avalanche",
+      "handle": "avax",
+      "search_names": ["Avalanche", "Avalanche Foundation"],
+      "account_type": "foundation",
+      "priority": "tier2",
+      "ecosystems": ["avalanche"],
+      "programs": ["Avalanche infraBUIDL"],
+      "watch_terms": [
+        "infrabuidl",
+        "grants",
+        "builder program",
+        "funding"
+      ]
+    },
+    {
+      "organization": "Polygon",
+      "handle": "0xPolygon",
+      "search_names": ["Polygon", "Polygon Labs"],
+      "account_type": "ecosystem",
+      "priority": "tier2",
+      "ecosystems": ["polygon"],
+      "programs": ["Polygon Village", "Polygon Ecosystem Grants"],
+      "watch_terms": [
+        "polygon village",
+        "ecosystem grants",
+        "accelerator",
+        "builder program"
+      ]
+    },
+    {
+      "organization": "Aptos",
+      "handle": "Aptos",
+      "search_names": ["Aptos", "Aptos Foundation"],
+      "account_type": "foundation",
+      "priority": "tier2",
+      "ecosystems": ["aptos"],
+      "programs": ["Aptos Grants"],
+      "watch_terms": [
+        "grants",
+        "ecosystem funding",
+        "applications open"
+      ]
+    },
+    {
+      "organization": "Starknet",
+      "handle": "Starknet",
+      "search_names": ["Starknet", "Starknet Foundation"],
+      "account_type": "foundation",
+      "priority": "tier2",
+      "ecosystems": ["starknet"],
+      "programs": ["Starknet Grants", "Starknet Builder Program"],
+      "watch_terms": [
+        "grants",
+        "builder program",
+        "seed",
+        "applications open"
+      ]
+    },
+    {
+      "organization": "Optimism",
+      "handle": "Optimism",
+      "search_names": ["Optimism", "Optimism Foundation"],
+      "account_type": "foundation",
+      "priority": "tier2",
+      "ecosystems": ["optimism"],
+      "programs": ["Optimism Grants"],
+      "watch_terms": [
+        "grants",
+        "retro funding",
+        "builder program",
+        "applications open"
+      ]
+    },
+    {
+      "organization": "Base",
+      "handle": "base",
+      "search_names": ["Base", "Base Ecosystem"],
+      "account_type": "l2",
+      "priority": "tier2",
+      "ecosystems": ["base"],
+      "programs": ["Base Builder Program"],
+      "watch_terms": [
+        "builder",
+        "grant",
+        "funding",
+        "applications open"
+      ]
+    },
+    {
+      "organization": "1kx",
+      "handle": "1kxnetwork",
+      "search_names": ["1kx"],
+      "account_type": "vc",
+      "priority": "tier2",
+      "ecosystems": ["ethereum"],
+      "programs": ["1kx Investment Activity"],
+      "watch_terms": [
+        "investment",
+        "backed",
+        "fund",
+        "thesis"
+      ]
+    },
+    {
+      "organization": "Placeholder",
+      "handle": "placeholdervc",
+      "search_names": ["Placeholder", "Placeholder VC"],
+      "account_type": "vc",
+      "priority": "tier2",
+      "ecosystems": ["ethereum", "solana"],
+      "programs": ["Placeholder Investment Activity"],
+      "watch_terms": [
+        "investment",
+        "backed",
+        "fund",
+        "accelerator"
+      ]
+    },
+    {
+      "organization": "Hack VC",
+      "handle": "Hack_vc",
+      "search_names": ["Hack VC"],
+      "account_type": "vc",
+      "priority": "tier2",
+      "ecosystems": ["ethereum", "solana"],
+      "programs": ["Hack VC Investment Activity"],
+      "watch_terms": [
+        "investment",
+        "backed",
+        "fund",
+        "portfolio"
+      ]
+    }
+  ]
+}

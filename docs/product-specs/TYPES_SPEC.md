@@ -25,7 +25,6 @@ class ProgramCategory(StrEnum):
 class OpportunityStatus(StrEnum):
     OPEN = "open"
     ROLLING = "rolling"
-    DEADLINE = "deadline"
     UPCOMING = "upcoming"
     CLOSED = "closed"
     UNKNOWN = "unknown"
@@ -67,8 +66,9 @@ class SubmissionStatus(StrEnum):
 class RankingIntent(StrEnum):
     DEFAULT = "default"
     URGENT = "urgent"
-    HIGHEST_MONEY = "highest_money"
-    BEST_ECOSYSTEM_MATCH = "best_ecosystem_match"
+    BIGGEST_CHECK = "biggest_check"
+    READY_NOW = "ready_now"
+    BEST_FIT = "best_fit"
 ```
 
 ---
@@ -157,17 +157,19 @@ class CompanyProfile:
 
 @dataclass
 class FitRecommendation:
-    """PRD 기준 4-factor priority: fit*0.35 + urgency*0.35 + value*0.15 + confidence*0.15"""
+    """PRD v1.1 기준 5-factor priority."""
     id: str
     opportunity_id: str
     company_profile_id: str
     project_name: str | None = None
-    fit_score: float                       # sector match + stage match + ecosystem relevance
-    priority_score: float | None = None    # 4-factor 가중 합산
+    fit_score: float
+    priority_score: float | None = None    # fit*0.35 + urgency*0.25 + actionability*0.20 + value*0.10 + confidence*0.10
     why_fit: str | None = None
     next_action: str | None = None
-    urgency_score: float | None = None     # deadline 기반
-    expected_value: float | None = None    # funding amount 기반
+    urgency_score: float | None = None
+    actionability_score: float | None = None
+    expected_value: float | None = None
+    confidence_score: float | None = None
     confidence: float | None = None        # fact_confidence
     computed_at: datetime | None = None
 ```
@@ -259,16 +261,17 @@ class MatchingInput:
 
 @dataclass
 class MatchingOutput:
-    """PRD 기준 4-factor."""
+    """PRD v1.1 기준 5-factor."""
     opportunity_id: str
     project_name: str | None
     fit_score: float
-    priority_score: float      # fit*0.35 + urgency*0.35 + value*0.15 + confidence*0.15
+    priority_score: float      # fit*0.35 + urgency*0.25 + actionability*0.20 + value*0.10 + confidence*0.10
     why_fit: str
     next_action: str
     urgency_score: float
+    actionability_score: float
     expected_value: float
-    confidence: float
+    confidence_score: float
 ```
 
 ---

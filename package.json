@@ -18,6 +18,7 @@
     "ctx:compact": "bash scripts/dev/context-compact.sh",
     "ctx:check": "bash scripts/dev/check-context-quality.sh",
     "ctx:restore": "bash scripts/dev/context-restore.sh",
+    "ctx:status": "bash scripts/dev/context-restore.sh --mode status",
     "ctx:pin": "bash scripts/dev/context-pin.sh",
     "ctx:auto": "bash scripts/dev/context-auto.sh",
     "adopt:bootstrap": "node scripts/dev/bootstrap-project-truth.mjs && node scripts/dev/bootstrap-claude-compat.mjs",

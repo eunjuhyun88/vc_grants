@@ -1,0 +1,11 @@
+organization,program,program_type,source,status_note,date_note,funding_range,max_amount,website,apply_url,industry_category,sector_tags,description,review_required,review_notes
+Base,BaseCamp Awards,grant,excel_grants,,마감 2025-09-02 / 2025-09-26,$250K,,https://onchainsummer.xyz/,,,,혁신 앱 보상.,yes,"likely related to Base onchain awards, but exact canonical program name still needs manual confirmation"
+Conviction,Embed,accelerator,excel_accelerators,진행중,,"$25만 투자, 무상한, 할인 없음 MFN SAFE, 또는 지난 60일 이내에 라운드와 동일한 가격
+AWS 크레딧 350만 달러, Azure 크레딧 35만 달러, 기타 컴퓨팅/추론/호스팅 크레딧 50만 달러 이상: OpenAI, Anthropic, Baseten, Pinecone, Vercel 및 Weights & Biases
+미스트랄 모델에 대한 조기 액세스
+한 달 동안의 연속 입학
+10-12개 회사의 클래스 규모, 매우 선택적(첫 번째 배치에서 1% 미만 선택)",,https://embed.conviction.com/,,Web2,,Focus: Web2,yes,"organization/program normalized, but current official apply surface still needs manual confirmation"
+First Round Capital,First Round,accelerator,excel_accelerators,진행중,,,,https://www.firstround.com/,,Web2,,Focus: Web2,yes,"organization normalized from domain, but exact current accelerator/program label still needs manual confirmation"
+Immutable,Immutable zkEVM Grants,grant,excel_grants,,활성 / 2025-06-03,최대 500K IMX,,https://www.immutable.com/,,,,게임 스튜디오 지원.,yes,"official Immutable site found, but exact current grant program page was not verified"
+Interchain Foundation,Interchain Foundation Grants,grant,excel_grants,,활성 / 2025-06-03,$50K-$300K CHF,,https://interchain.io/builders,https://interchain.io/builders,,,Cosmos/IBC 연구.,yes,"official Interchain builders program found, but exact grant-page mapping remains ambiguous"
+Iterative Incubator,Iterative Incubator (AI dev tools),accelerator,excel_accelerators,,,,,,,,,,yes,no reliable official incubator page was verified; keep out of final import set

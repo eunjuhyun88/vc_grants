@@ -1,0 +1,121 @@
+{
+  "version": 1,
+  "profiles": {
+    "HOOT": {
+      "tier1_ecosystems": ["Bittensor", "NEAR", "Ethereum", "Monad"],
+      "tier2_ecosystems": ["Solana", "Arbitrum", "Avalanche", "Polygon"]
+    }
+  },
+  "ecosystems": [
+    {
+      "name": "Monad",
+      "tier": "tier1",
+      "aliases": ["monad", "nitro accelerator", "monad momentum", "mach accelerator", "founder residency"],
+      "programs": ["Nitro Accelerator", "Monad Momentum", "Mach Accelerator", "Founder Residency"]
+    },
+    {
+      "name": "NEAR",
+      "tier": "tier1",
+      "aliases": ["near", "near funding", "near ai"],
+      "programs": ["NEAR Funding"]
+    },
+    {
+      "name": "Ethereum",
+      "tier": "tier1",
+      "aliases": ["ethereum", "ethereum ecosystem support program", "ethereum esp"],
+      "programs": ["Ethereum Ecosystem Support Program"]
+    },
+    {
+      "name": "Bittensor",
+      "tier": "tier1",
+      "aliases": ["bittensor", "subnet ecosystem", "bittensor ecosystem"],
+      "programs": ["Bittensor Ecosystem Funding"]
+    },
+    {
+      "name": "Solana",
+      "tier": "tier2",
+      "aliases": ["solana", "solana foundation grants", "solana grants", "solana colosseum"],
+      "programs": ["Solana Foundation Grants", "Solana Colosseum"]
+    },
+    {
+      "name": "Arbitrum",
+      "tier": "tier2",
+      "aliases": ["arbitrum", "arbitrum grants"],
+      "programs": ["Arbitrum Grants"]
+    },
+    {
+      "name": "Avalanche",
+      "tier": "tier2",
+      "aliases": ["avalanche", "infrabuidl", "avalanche infrabuidl"],
+      "programs": ["Avalanche infraBUIDL"]
+    },
+    {
+      "name": "Polygon",
+      "tier": "tier2",
+      "aliases": ["polygon", "polygon village", "polygon ecosystem grants"],
+      "programs": ["Polygon Village", "Polygon Ecosystem Grants"]
+    }
+  ],
+  "organizations": [
+    {
+      "name": "Monad",
+      "aliases": ["Monad Foundation"],
+      "ecosystems": ["Monad"],
+      "programs": ["Nitro Accelerator", "Monad Momentum", "Mach Accelerator", "Founder Residency"],
+      "partners": ["Paradigm", "Electric Capital", "Dragonfly"],
+      "mentors": ["Paradigm", "Electric Capital", "Dragonfly", "Castle Island"],
+      "portfolio_analogs": ["Nitro Accelerator"],
+      "official_urls": ["https://nitroacc.xyz/", "https://monad.xyz/"]
+    },
+    {
+      "name": "a16z",
+      "aliases": ["a16z crypto", "Andreessen Horowitz"],
+      "ecosystems": ["Ethereum"],
+      "programs": ["Speedrun"],
+      "partners": ["a16z crypto"],
+      "mentors": ["a16z crypto"],
+      "portfolio_analogs": ["Speedrun"],
+      "official_urls": ["https://a16z.com/speedrun/"]
+    },
+    {
+      "name": "Alliance",
+      "aliases": ["Alliance DAO"],
+      "ecosystems": ["Ethereum", "Solana"],
+      "programs": ["Alliance Accelerator"],
+      "partners": ["Alliance DAO"],
+      "mentors": ["Alliance DAO"],
+      "portfolio_analogs": ["Alliance Accelerator"],
+      "official_urls": ["https://alliance.xyz/apply"]
+    },
+    {
+      "name": "Outlier Ventures",
+      "aliases": ["Outlier"],
+      "ecosystems": ["Ethereum", "Polygon"],
+      "programs": ["Outlier Ventures Base Camp"],
+      "partners": ["Outlier Ventures"],
+      "mentors": ["Outlier Ventures"],
+      "portfolio_analogs": ["Outlier Ventures Base Camp"],
+      "official_urls": ["https://outlierventures.io/apply/form/"]
+    },
+    {
+      "name": "Chainlink",
+      "aliases": ["Chainlink Labs"],
+      "ecosystems": ["Ethereum"],
+      "programs": ["Chainlink BUILD", "Chainlink Community Grants"],
+      "partners": ["Chainlink Labs"],
+      "mentors": ["Chainlink Labs"],
+      "portfolio_analogs": ["Chainlink BUILD"],
+      "official_urls": ["https://chain.link/build", "https://chain.link/community/grants"]
+    },
+    {
+      "name": "NEAR",
+      "aliases": ["NEAR Foundation"],
+      "ecosystems": ["NEAR"],
+      "programs": ["NEAR Funding"],
+      "partners": ["NEAR Foundation"],
+      "mentors": ["NEAR Foundation"],
+      "portfolio_analogs": ["NEAR Funding"],
+      "official_urls": ["https://www.near.org/funding"]
+    }
+  ]
+}

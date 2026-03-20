@@ -7,6 +7,7 @@ EntityStore 테스트 — Phase 1 CRUD 검증.
 from __future__ import annotations
 
 import json
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -26,6 +27,7 @@ from src.core.types import (
     OutputStatus,
     Program,
     ProgramCategory,
+    SocialMonitoringEvent,
     generate_id,
     normalize_org_name,
     normalize_url,
@@ -196,6 +198,105 @@ async def test_update_organization(store: EntityStore, sample_org: Organization)
     assert "defi" in result.sector_tags
 
 
+@pytest.mark.asyncio
+async def test_social_alert_candidates_only_include_verified_actionable_social_rows(
+    store: EntityStore,
+    sample_org: Organization,
+    sample_program: Program,
+):
+    opp = Opportunity(
+        id=generate_id("opp_"),
+        program_id=sample_program.id,
+        status=OpportunityStatus.OPEN,
+        apply_url="https://speedrun.xyz/apply",
+        output_status=OutputStatus.VERIFIED,
+        fact_confidence=0.9,
+        source_tier=1,
+        days_left=5,
+    )
+    await store.create_opportunity(opp)
+
+    social_event = SocialMonitoringEvent(
+        id=generate_id("sme_"),
+        source_url="https://x.com/a16zcrypto/status/123",
+        matched_account="a16z Crypto",
+        matched_account_type="vc",
+        monitoring_round="vc-us",
+        organization="a16z Crypto",
+        program="Speedrun",
+        category="vc_cohort",
+        signal_type="applications_open",
+        apply_url="https://speedrun.xyz/apply",
+        confidence=0.45,
+        promoted_opportunity_id=opp.id,
+        verification_status="verified",
+    )
+    await store.upsert_social_monitoring_event(social_event)
+
+    pending_opp = Opportunity(
+        id=generate_id("opp_"),
+        program_id=sample_program.id,
+        status=OpportunityStatus.UNKNOWN,
+        apply_url="https://speedrun.xyz/apply",
+        output_status=OutputStatus.PENDING,
+        fact_confidence=0.4,
+        source_tier=5,
+    )
+    await store.create_opportunity(pending_opp)
+    await store.upsert_social_monitoring_event(
+        SocialMonitoringEvent(
+            id=generate_id("sme_"),
+            source_url="https://x.com/a16zcrypto/status/999",
+            matched_account="a16z Crypto",
+            matched_account_type="vc",
+            monitoring_round="vc-us",
+            organization="a16z Crypto",
+            program="Speedrun",
+            category="vc_cohort",
+            signal_type="applications_open",
+            promoted_opportunity_id=pending_opp.id,
+            verification_status="pending",
+        )
+    )
+
+    candidates = await store.list_social_alert_candidates(limit=10)
+    assert len(candidates) == 1
+    assert candidates[0]["event_id"] == social_event.id
+    assert candidates[0]["monitoring_round"] == "vc-us"
+    assert candidates[0]["program_url"] == sample_program.program_url
+
+
+@pytest.mark.asyncio
+async def test_list_telegram_recipient_ids_returns_distinct_non_null_users(store: EntityStore):
+    await store.create_company_profile(
+        CompanyProfile(
+            id=generate_id("cp_"),
+            company_name="HOOT",
+            stage=CompanyStage.MVP,
+            telegram_user_id=1001,
+        )
+    )
+    await store.create_company_profile(
+        CompanyProfile(
+            id=generate_id("cp_"),
+            company_name="StockClaw",
+            stage=CompanyStage.IDEA,
+            telegram_user_id=1002,
+        )
+    )
+    await store.create_company_profile(
+        CompanyProfile(
+            id=generate_id("cp_"),
+            company_name="MoltVC",
+            stage=CompanyStage.IDEA,
+            telegram_user_id=None,
+        )
+    )
+
+    recipients = await store.list_telegram_recipient_ids()
+    assert recipients == [1001, 1002]
+
+
 # ============================================================
 # Program Tests
 # ============================================================
@@ -294,12 +395,12 @@ async def test_update_opportunity(store: EntityStore, sample_opportunity: Opport
     """기회 필드 업데이트 (deadline 변경 시 UPDATE, 새 row 아님)."""
     await store.update_opportunity(
         sample_opportunity.id,
-        status=OpportunityStatus.DEADLINE,
+        status=OpportunityStatus.OPEN,
         days_left=7,
     )
     result = await store.get_opportunity(sample_opportunity.id)
     assert result is not None
-    assert result.status == OpportunityStatus.DEADLINE
+    assert result.status == OpportunityStatus.OPEN
     assert result.days_left == 7
 
 
@@ -312,6 +413,15 @@ async def test_curated_view_filter(
 ):
     """verified + confidence >= 0.75 + tier <= 2만 반환."""
     # 조건 충족 opp (이미 sample_opportunity가 있음)
+    await store.create_endpoint(
+        ApplicationEndpoint(
+            id=generate_id("ep_"),
+            opportunity_id=sample_opportunity.id,
+            endpoint_type=EndpointType.FORM,
+            url="https://speedrun.xyz/apply",
+            is_active=True,
+        )
+    )
     results = await store.list_opportunities_curated(
         company_profile_id=None,
         min_confidence=0.75,
@@ -358,6 +468,28 @@ async def test_curated_view_excludes_no_apply_url(
 
     results = await store.list_opportunities_curated(min_confidence=0.75)
     assert not any(r["id"] == no_url_opp.id for r in results)
+
+
+@pytest.mark.asyncio
+async def test_curated_view_excludes_past_exact_deadline(
+    store: EntityStore, sample_program: Program
+):
+    """이미 지난 exact deadline은 curated view에서 제외."""
+    stale_opp = Opportunity(
+        id=generate_id("opp_"),
+        program_id=sample_program.id,
+        status=OpportunityStatus.OPEN,
+        deadline_at=datetime.now() - timedelta(days=1),
+        days_left=-1,
+        apply_url="https://example.com/apply",
+        output_status=OutputStatus.VERIFIED,
+        fact_confidence=0.95,
+        source_tier=1,
+    )
+    await store.create_opportunity(stale_opp)
+
+    results = await store.list_opportunities_curated(min_confidence=0.75)
+    assert not any(r["id"] == stale_opp.id for r in results)
 
 
 @pytest.mark.asyncio
@@ -422,6 +554,37 @@ async def test_endpoint_crud(store: EntityStore, sample_opportunity: Opportunity
     assert endpoints[0].endpoint_type == EndpointType.FORM
 
 
+@pytest.mark.asyncio
+async def test_sync_active_endpoints_deactivates_stale_urls(
+    store: EntityStore,
+    sample_opportunity: Opportunity,
+):
+    old_ep = ApplicationEndpoint(
+        id=generate_id("ep_"),
+        opportunity_id=sample_opportunity.id,
+        endpoint_type=EndpointType.FORM,
+        url="https://speedrun.xyz/old-apply",
+        is_active=True,
+    )
+    good_ep = ApplicationEndpoint(
+        id=generate_id("ep_"),
+        opportunity_id=sample_opportunity.id,
+        endpoint_type=EndpointType.FORM,
+        url="https://speedrun.xyz/apply",
+        is_active=True,
+    )
+    await store.create_endpoint(old_ep)
+    await store.create_endpoint(good_ep)
+
+    await store.sync_active_endpoints(
+        sample_opportunity.id,
+        ["https://speedrun.xyz/apply"],
+    )
+
+    endpoints = await store.get_active_endpoints(sample_opportunity.id)
+    assert [endpoint.url for endpoint in endpoints] == ["https://speedrun.xyz/apply"]
+
+
 # ============================================================
 # Company Profile Tests
 # ============================================================
@@ -477,6 +640,23 @@ async def test_profile_by_telegram_user(store: EntityStore):
     # 존재하지 않는 ID
     none_result = await store.get_profile_by_telegram_user(11111)
     assert none_result is None
+
+
+@pytest.mark.asyncio
+async def test_delete_profile_by_telegram_user(store: EntityStore):
+    profile = CompanyProfile(
+        id="cp_delete_me",
+        company_name="Delete Me",
+        telegram_user_id=424242,
+    )
+    await store.create_company_profile(profile)
+
+    deleted = await store.delete_profile_by_telegram_user(424242)
+    assert deleted is True
+    assert await store.get_profile_by_telegram_user(424242) is None
+
+    missing = await store.delete_profile_by_telegram_user(424242)
+    assert missing is False
 
 
 @pytest.mark.asyncio

@@ -1,0 +1,401 @@
+{
+  "generated_at": "2026-03-11T17:46:35.770591+00:00",
+  "case_count": 1,
+  "overall_goal_met": false,
+  "cases": [
+    {
+      "case_id": "hoot_actionable_top10",
+      "summary": "HOOT 기준 action list에 가까운 top 10을 확보한다.",
+      "profile": "HOOT",
+      "anchors": [
+        "Nitro Accelerator",
+        "Speedrun",
+        "Alliance Accelerator",
+        "Ethereum Ecosystem Support Program",
+        "NEAR Funding",
+        "Chainlink BUILD"
+      ],
+      "goal_thresholds": {
+        "actionable_top10_count": {
+          "gte": 4
+        },
+        "high_fit_verified_count": {
+          "gte": 2
+        },
+        "profile_specific_recall": {
+          "gte": 0.34
+        },
+        "missing_anchor_count": {
+          "lte": 4
+        }
+      },
+      "stop_reason": "max_runs_reached",
+      "runs": [
+        {
+          "attempt": 1,
+          "mode": "fast",
+          "search_hints": [],
+          "applied_actions": [],
+          "metrics": {
+            "top_result_count": 10,
+            "actionable_top10_count": 0,
+            "high_fit_verified_count": 0,
+            "matched_anchor_count": 3,
+            "missing_anchor_count": 3,
+            "profile_specific_recall": 0.5,
+            "stale_top10_count": 9,
+            "average_priority_score": 0.6374,
+            "social_candidate_count": 0,
+            "social_candidate_ratio": 0.0,
+            "candidate_to_ingested_ratio": 0.925,
+            "rounds_executed": 1,
+            "matched_anchors": [
+              "Nitro Accelerator",
+              "NEAR Funding",
+              "Chainlink BUILD"
+            ]
+          },
+          "goal": {
+            "met": false,
+            "failed_metrics": [
+              "actionable_top10_count",
+              "high_fit_verified_count"
+            ],
+            "checks": [
+              {
+                "metric": "actionable_top10_count",
+                "value": 0,
+                "rule": {
+                  "gte": 4
+                },
+                "passed": false,
+                "detail": "0 >= 4"
+              },
+              {
+                "metric": "high_fit_verified_count",
+                "value": 0,
+                "rule": {
+                  "gte": 2
+                },
+                "passed": false,
+                "detail": "0 >= 2"
+              },
+              {
+                "metric": "profile_specific_recall",
+                "value": 0.5,
+                "rule": {
+                  "gte": 0.34
+                },
+                "passed": true,
+                "detail": "0.5 >= 0.34"
+              },
+              {
+                "metric": "missing_anchor_count",
+                "value": 3,
+                "rule": {
+                  "lte": 4
+                },
+                "passed": true,
+                "detail": "3 <= 4"
+              }
+            ]
+          },
+          "progress_score": 0.5,
+          "result_counts": {
+            "web_count": 0,
+            "social_count": 0,
+            "reference_count": 80,
+            "total_raw": 80,
+            "total_deduped": 74,
+            "total_ingested": 74,
+            "new_discovered": 74,
+            "elapsed_seconds": 9.072,
+            "errors": []
+          },
+          "round_log": [
+            {
+              "round": 0,
+              "source": "reference",
+              "raw": 80,
+              "new_progs": 74,
+              "elapsed_s": 0.0
+            }
+          ],
+          "next_actions": [
+            "escalate_to_deep_search",
+            "expand_apply_and_official_page_queries",
+            "bias_official_domains_and_reference_sources"
+          ],
+          "top_results": [
+            {
+              "opportunity_id": "opp_a7544d70f438",
+              "organization": "Chainlink",
+              "program": "Chainlink BUILD",
+              "category": "builder_program",
+              "status": "rolling",
+              "apply_url": "https://chainlinkcommunity.typeform.com/to/loz2DFeA",
+              "days_left": null,
+              "source_tier": 3,
+              "confidence": 0.535,
+              "fit_score": 0.826,
+              "priority_score": 0.6885,
+              "why_fit": "높은 적합도: builder_program 프로그램에서 ai, infra, web3, ef 정합성 높음 · 현재 상태 rolling",
+              "next_action": "Rolling 접수 — 가능한 빨리 지원",
+              "source_chain": [
+                "https://chain.link/build",
+                "https://chainlinkcommunity.typeform.com/to/loz2DFeA"
+              ],
+              "updated_at": "2026-03-12T02:46:29.026465"
+            },
+            {
+              "opportunity_id": "opp_d851d8b63949",
+              "organization": "Decentralized Cloud Foundation",
+              "program": "Crust Grants Program",
+              "category": "grant",
+              "status": "unknown",
+              "apply_url": "https://wiki.crust.network/docs/en/crustGrants",
+              "days_left": null,
+              "source_tier": 3,
+              "confidence": 0.495,
+              "fit_score": 0.9,
+              "priority_score": 0.6635000000000001,
+              "why_fit": "높은 적합도: grant 프로그램에서 ai infra, ai, infra, decentralized 정합성 높음",
+              "next_action": "상세 요건 확인 후 지원 준비",
+              "source_chain": [
+                "https://wiki.crust.network/docs/en/crustGrants"
+              ],
+              "updated_at": "2026-03-12T02:46:28.628700"
+            },
+            {
+              "opportunity_id": "opp_f81afb4163d2",
+              "organization": "MolochDAO",
+              "program": "MolochDAO Grants",
+              "category": "grant",
+              "status": "unknown",
+              "apply_url": "https://molochdao.com/",
+              "days_left": null,
+              "source_tier": 5,
+              "confidence": 0.355,
+              "fit_score": 0.9,
+              "priority_score": 0.6525,
+              "why_fit": "높은 적합도: grant 프로그램에서 ai infra, ai, infra, decentralized 정합성 높음",
+              "next_action": "상세 요건 확인 후 지원 준비",
+              "source_chain": [
+                "https://molochdao.com/"
+              ],
+              "updated_at": "2026-03-12T02:46:31.675377"
+            },
+            {
+              "opportunity_id": "opp_e43dcbaf4870",
+              "organization": "Radicle",
+              "program": "Radicle Grants",
+              "category": "grant",
+              "status": "unknown",
+              "apply_url": "https://radicle.mirror.xyz/7RDTvdxABVndpZge9VT09Ku5JXD8lCCCpLRRZaVrtJU",
+              "days_left": null,
+              "source_tier": 2,
+              "confidence": 0.6,
+              "fit_score": 0.783,
+              "priority_score": 0.6515000000000002,
+              "why_fit": "높은 적합도: grant 프로그램에서 ai, model, web3, ai_infra 정합성 높음",
+              "next_action": "상세 요건 확인 후 지원 준비",
+              "source_chain": [
+                "https://radicle.mirror.xyz/7RDTvdxABVndpZge9VT09Ku5JXD8lCCCpLRRZaVrtJU"
+              ],
+              "updated_at": "2026-03-12T02:46:30.435774"
+            },
+            {
+              "opportunity_id": "opp_1dec4090eca5",
+              "organization": "Neo",
+              "program": "NEO General Grants",
+              "category": "grant",
+              "status": "unknown",
+              "apply_url": "https://neo.org/eco#general-grants",
+              "days_left": null,
+              "source_tier": 3,
+              "confidence": 0.495,
+              "fit_score": 0.85,
+              "priority_score": 0.6505000000000001,
+              "why_fit": "높은 적합도: grant 프로그램에서 ai infra, ai, infra, blockchain 정합성 높음",
+              "next_action": "상세 요건 확인 후 지원 준비",
+              "source_chain": [
+                "https://neo.org/eco#general-grants"
+              ],
+              "updated_at": "2026-03-12T02:46:29.459038"
+            },
+            {
+              "opportunity_id": "opp_a186cfd5cb95",
+              "organization": "Compound Finance",
+              "program": "Compound Grants Program",
+              "category": "grant",
+              "status": "unknown",
+              "apply_url": "https://questbook.app/",
+              "days_left": null,
+              "source_tier": 3,
+              "confidence": 0.455,
+              "fit_score": 0.85,
+              "priority_score": 0.6285000000000001,
+              "why_fit": "높은 적합도: grant 프로그램에서 ai infra, ai, infra, tooling 정합성 높음",
+              "next_action": "상세 요건 확인 후 지원 준비",
+              "source_chain": [
+                "https://questbook.app/"
+              ],
+              "updated_at": "2026-03-12T02:46:34.753033"
+            },
+            {
+              "opportunity_id": "opp_efb0214cf1b1",
+              "organization": "Denarii",
+              "program": "Denarii",
+              "category": "accelerator",
+              "status": "unknown",
+              "apply_url": "https://airtable.com/app249gcLcaJF4qvj/page3HaBQAelT3whO/form",
+              "days_left": null,
+              "source_tier": 3,
+              "confidence": 0.495,
+              "fit_score": 0.717,
+              "priority_score": 0.616,
+              "why_fit": "높은 적합도: accelerator 프로그램에서 ai, web3, small, ef 정합성 높음",
+              "next_action": "상세 요건 확인 후 지원 준비",
+              "source_chain": [
+                "https://www.denariilabs.xyz",
+                "https://airtable.com/app249gcLcaJF4qvj/page3HaBQAelT3whO/form"
+              ],
+              "updated_at": "2026-03-12T02:46:28.787168"
+            },
+            {
+              "opportunity_id": "opp_fbaf4fa7fd3b",
+              "organization": "Monad",
+              "program": "Nitro Accelerator",
+              "category": "vc_cohort",
+              "status": "unknown",
+              "apply_url": "https://nitroacc.xyz/",
+              "days_left": null,
+              "source_tier": 3,
+              "confidence": 0.495,
+              "fit_score": 0.747,
+              "priority_score": 0.611,
+              "why_fit": "높은 적합도: vc_cohort 프로그램에서 ai, crypto, web3, monad 정합성 높음",
+              "next_action": "상세 요건 확인 후 지원 준비",
+              "source_chain": [
+                "https://nitroacc.xyz/"
+              ],
+              "updated_at": "2026-03-12T02:46:27.093240"
+            },
+            {
+              "opportunity_id": "opp_6390c1fb3df6",
+              "organization": "Avalanche",
+              "program": "Avalanche Grants & Programs",
+              "category": "grant",
+              "status": "unknown",
+              "apply_url": "https://build.avax.network/grants#programs",
+              "days_left": null,
+              "source_tier": 3,
+              "confidence": 0.495,
+              "fit_score": 0.717,
+              "priority_score": 0.608,
+              "why_fit": "높은 적합도: grant 프로그램에서 ai, blockchain, base, ai_infra 정합성 높음",
+              "next_action": "상세 요건 확인 후 지원 준비",
+              "source_chain": [
+                "https://build.avax.network/grants#programs"
+              ],
+              "updated_at": "2026-03-12T02:46:27.006705"
+            },
+            {
+              "opportunity_id": "opp_3a5e9aabd38b",
+              "organization": "NEAR",
+              "program": "NEAR Funding",
+              "category": "grant",
+              "status": "unknown",
+              "apply_url": "https://www.near.org/funding",
+              "days_left": null,
+              "source_tier": 1,
+              "confidence": 0.63,
+              "fit_score": 0.767,
+              "priority_score": 0.6045,
+              "why_fit": "높은 적합도: grant 프로그램에서 ai, web3, protocol, near 정합성 높음",
+              "next_action": "상세 요건 확인 후 지원 준비",
+              "source_chain": [
+                "https://www.near.org/funding"
+              ],
+              "updated_at": "2026-03-12T02:46:27.271287"
+            }
+          ]
+        }
+      ],
+      "final_metrics": {
+        "top_result_count": 10,
+        "actionable_top10_count": 0,
+        "high_fit_verified_count": 0,
+        "matched_anchor_count": 3,
+        "missing_anchor_count": 3,
+        "profile_specific_recall": 0.5,
+        "stale_top10_count": 9,
+        "average_priority_score": 0.6374,
+        "social_candidate_count": 0,
+        "social_candidate_ratio": 0.0,
+        "candidate_to_ingested_ratio": 0.925,
+        "rounds_executed": 1,
+        "matched_anchors": [
+          "Nitro Accelerator",
+          "NEAR Funding",
+          "Chainlink BUILD"
+        ]
+      },
+      "goal": {
+        "met": false,
+        "failed_metrics": [
+          "actionable_top10_count",
+          "high_fit_verified_count"
+        ],
+        "checks": [
+          {
+            "metric": "actionable_top10_count",
+            "value": 0,
+            "rule": {
+              "gte": 4
+            },
+            "passed": false,
+            "detail": "0 >= 4"
+          },
+          {
+            "metric": "high_fit_verified_count",
+            "value": 0,
+            "rule": {
+              "gte": 2
+            },
+            "passed": false,
+            "detail": "0 >= 2"
+          },
+          {
+            "metric": "profile_specific_recall",
+            "value": 0.5,
+            "rule": {
+              "gte": 0.34
+            },
+            "passed": true,
+            "detail": "0.5 >= 0.34"
+          },
+          {
+            "metric": "missing_anchor_count",
+            "value": 3,
+            "rule": {
+              "lte": 4
+            },
+            "passed": true,
+            "detail": "3 <= 4"
+          }
+        ]
+      },
+      "recommended_actions": [
+        "escalate_to_deep_search",
+        "expand_apply_and_official_page_queries",
+        "bias_official_domains_and_reference_sources"
+      ]
+    }
+  ],
+  "recommended_actions": [
+    "escalate_to_deep_search",
+    "expand_apply_and_official_page_queries",
+    "bias_official_domains_and_reference_sources"
+  ]
+}

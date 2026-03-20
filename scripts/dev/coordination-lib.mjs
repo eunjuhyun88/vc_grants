@@ -3,6 +3,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 
+export const REPO_ROOT_PATH = '.';
+
 export function run(command, args, options = {}) {
   return spawnSync(command, args, {
     cwd: options.cwd,
@@ -37,16 +39,30 @@ export function sanitize(value) {
 }
 
 export function normalizeRepoPath(value) {
-  return String(value).trim().replace(/\\/g, '/').replace(/^\.?\//, '').replace(/\/+$/, '');
+  const raw = String(value ?? '').trim().replace(/\\/g, '/');
+  if (!raw) return '';
+  if (raw === REPO_ROOT_PATH || raw === './' || raw === '/') {
+    return REPO_ROOT_PATH;
+  }
+
+  const normalized = raw.replace(/^\.?\//, '').replace(/\/+$/, '');
+  return normalized || REPO_ROOT_PATH;
+}
+
+export function isRepoRootPath(value) {
+  return normalizeRepoPath(value) === REPO_ROOT_PATH;
 }
 
 export function pathOverlaps(left, right) {
   if (!left || !right) return false;
+  if (isRepoRootPath(left) || isRepoRootPath(right)) return true;
   return left === right || left.startsWith(`${right}/`) || right.startsWith(`${left}/`);
 }
 
 export function isWithinPrefix(target, prefix) {
   if (!target || !prefix) return false;
+  if (isRepoRootPath(prefix)) return true;
+  if (isRepoRootPath(target)) return isRepoRootPath(prefix);
   return target === prefix || target.startsWith(`${prefix}/`);
 }
 

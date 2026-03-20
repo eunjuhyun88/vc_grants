@@ -76,8 +76,10 @@ CREATE TABLE programs (
   updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(org_id, normalized_name)       -- dedup 기준
 );
--- category enum (PRD 기준 4가지):
--- 'grant' | 'accelerator' | 'vc_cohort' | 'ecosystem_builder'
+-- category enum (ENTITY_MODEL 기준):
+-- 'grant' | 'accelerator' | 'vc_cohort' | 'fund'
+-- | 'builder_program' | 'residency' | 'hackathon_pipeline'
+-- deprecated compatibility: 'ecosystem_builder'
 ```
 
 ### opportunities
@@ -101,14 +103,16 @@ CREATE TABLE opportunities (
   created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
--- status enum: 'open' | 'rolling' | 'deadline' | 'upcoming' | 'closed' | 'unknown'
--- output_status: 'verified'만 Telegram 출력 대상
+-- status enum: 'open' | 'rolling' | 'upcoming' | 'closed' | 'unknown'
+-- output_status: MVP compatibility field. canonical concept is verification_state.
 ```
 
 **규칙:**
 - `program_id` NOT NULL — Program 없이 Opportunity 생성 불가
 - `deadline_at` NULL 허용 — rolling grant는 null이 정상값
 - deadline 변경 → 기존 record UPDATE, 새 row 생성 금지
+- canonical `data/seed_raw.json`은 reviewed raw spreadsheets가 아니라
+  curated final CSV (`output/spreadsheet/funding_sources_resolved.csv`)에서 생성하는 것을 기본 경로로 한다
 
 ### application_endpoints
 ```sql

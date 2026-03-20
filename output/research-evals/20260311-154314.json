@@ -1,0 +1,402 @@
+{
+  "generated_at": "2026-03-11T15:43:14.906705+00:00",
+  "case_count": 1,
+  "overall_goal_met": false,
+  "cases": [
+    {
+      "case_id": "hoot_actionable_top10",
+      "summary": "HOOT 기준 action list에 가까운 top 10을 확보한다.",
+      "profile": "HOOT",
+      "anchors": [
+        "Nitro Accelerator",
+        "Speedrun",
+        "Alliance Accelerator",
+        "Ethereum Ecosystem Support Program",
+        "NEAR Funding",
+        "Chainlink BUILD"
+      ],
+      "goal_thresholds": {
+        "actionable_top10_count": {
+          "gte": 4
+        },
+        "high_fit_verified_count": {
+          "gte": 2
+        },
+        "profile_specific_recall": {
+          "gte": 0.34
+        },
+        "missing_anchor_count": {
+          "lte": 4
+        }
+      },
+      "stop_reason": "max_runs_reached",
+      "runs": [
+        {
+          "attempt": 1,
+          "mode": "fast",
+          "metrics": {
+            "top_result_count": 10,
+            "actionable_top10_count": 0,
+            "high_fit_verified_count": 0,
+            "matched_anchor_count": 1,
+            "missing_anchor_count": 5,
+            "profile_specific_recall": 0.1667,
+            "stale_top10_count": 10,
+            "average_priority_score": 0.2767,
+            "social_candidate_count": 0,
+            "social_candidate_ratio": 0.0,
+            "candidate_to_ingested_ratio": 0.54,
+            "rounds_executed": 1,
+            "matched_anchors": [
+              "Ethereum Ecosystem Support Program"
+            ]
+          },
+          "goal": {
+            "met": false,
+            "failed_metrics": [
+              "actionable_top10_count",
+              "high_fit_verified_count",
+              "profile_specific_recall",
+              "missing_anchor_count"
+            ],
+            "checks": [
+              {
+                "metric": "actionable_top10_count",
+                "value": 0,
+                "rule": {
+                  "gte": 4
+                },
+                "passed": false,
+                "detail": "0 >= 4"
+              },
+              {
+                "metric": "high_fit_verified_count",
+                "value": 0,
+                "rule": {
+                  "gte": 2
+                },
+                "passed": false,
+                "detail": "0 >= 2"
+              },
+              {
+                "metric": "profile_specific_recall",
+                "value": 0.1667,
+                "rule": {
+                  "gte": 0.34
+                },
+                "passed": false,
+                "detail": "0.1667 >= 0.34"
+              },
+              {
+                "metric": "missing_anchor_count",
+                "value": 5,
+                "rule": {
+                  "lte": 4
+                },
+                "passed": false,
+                "detail": "5 <= 4"
+              }
+            ]
+          },
+          "result_counts": {
+            "web_count": 0,
+            "social_count": 0,
+            "reference_count": 50,
+            "total_raw": 50,
+            "total_deduped": 27,
+            "total_ingested": 27,
+            "new_discovered": 27,
+            "elapsed_seconds": 0.082,
+            "errors": []
+          },
+          "round_log": [
+            {
+              "round": 0,
+              "source": "reference",
+              "raw": 50,
+              "new_progs": 27,
+              "elapsed_s": 0.0
+            }
+          ],
+          "next_actions": [
+            "escalate_to_deep_search",
+            "expand_apply_and_official_page_queries",
+            "bias_official_domains_and_reference_sources",
+            "add_profile_specific_anchor_and_thesis_variants",
+            "expand_target_ecosystem_and_vc_cohort_queries"
+          ],
+          "top_results": [
+            {
+              "opportunity_id": "opp_6fd6f59b13f8",
+              "organization": "Boost VC",
+              "program": "Boost VC",
+              "category": "accelerator",
+              "status": "unknown",
+              "apply_url": "https://www.boost.vc/?utm_source=substack&utm_medium=email",
+              "days_left": null,
+              "source_tier": 3,
+              "confidence": 0.495,
+              "fit_score": 0.15,
+              "priority_score": 0.3115,
+              "why_fit": "분야 직접 매칭은 없으나 관련 가능성 있음",
+              "next_action": "상세 요건 확인 후 지원 준비",
+              "source_chain": [
+                "https://www.boost.vc/?utm_source=substack&utm_medium=email"
+              ],
+              "updated_at": "2026-03-11T15:43:14"
+            },
+            {
+              "opportunity_id": "opp_aac43d650622",
+              "organization": "Arbitrum / Uniswap",
+              "program": "Uniswap-Arbitrum Grant Program (UAGP)",
+              "category": "grant",
+              "status": "unknown",
+              "apply_url": "https://uniswap.org",
+              "days_left": null,
+              "source_tier": 3,
+              "confidence": 0.495,
+              "fit_score": 0.15,
+              "priority_score": 0.2915,
+              "why_fit": "분야 직접 매칭은 없으나 관련 가능성 있음",
+              "next_action": "상세 요건 확인 후 지원 준비",
+              "source_chain": [
+                "https://uniswap.org"
+              ],
+              "updated_at": "2026-03-11T15:43:14"
+            },
+            {
+              "opportunity_id": "opp_31f877ee85c3",
+              "organization": "Arbitrum Foundation",
+              "program": "Trailblazer AI Grant Program",
+              "category": "grant",
+              "status": "unknown",
+              "apply_url": "https://docs.google.com/forms/d/e/1FAIpQLSe-GF7UcUOuyEMsgnVpLFrG_W83RAchaPPqOCD83pZaZXskgw/viewform",
+              "days_left": null,
+              "source_tier": 3,
+              "confidence": 0.495,
+              "fit_score": 0.1,
+              "priority_score": 0.2785,
+              "why_fit": "분야 직접 매칭은 없으나 관련 가능성 있음",
+              "next_action": "상세 요건 확인 후 지원 준비",
+              "source_chain": [
+                "https://docs.google.com/forms/d/e/1FAIpQLSe-GF7UcUOuyEMsgnVpLFrG_W83RAchaPPqOCD83pZaZXskgw/viewform"
+              ],
+              "updated_at": "2026-03-11T15:43:14"
+            },
+            {
+              "opportunity_id": "opp_cb7fd2fe7bcc",
+              "organization": "Avalanche",
+              "program": "Avalanche Grants & Programs",
+              "category": "grant",
+              "status": "unknown",
+              "apply_url": "https://build.avax.network/grants#programs",
+              "days_left": null,
+              "source_tier": 3,
+              "confidence": 0.495,
+              "fit_score": 0.1,
+              "priority_score": 0.2785,
+              "why_fit": "분야 직접 매칭은 없으나 관련 가능성 있음",
+              "next_action": "상세 요건 확인 후 지원 준비",
+              "source_chain": [
+                "https://build.avax.network/grants#programs"
+              ],
+              "updated_at": "2026-03-11T15:43:14"
+            },
+            {
+              "opportunity_id": "opp_7716739fe846",
+              "organization": "Tulip Garden",
+              "program": "Tulip Farmers Fund",
+              "category": "grant",
+              "status": "unknown",
+              "apply_url": "https://tulipprotocol.notion.site/Developer-Tulip-Farmers-Fund-Resources-796fb02d8162446eb39fd9bbcc953679",
+              "days_left": null,
+              "source_tier": 3,
+              "confidence": 0.495,
+              "fit_score": 0.1,
+              "priority_score": 0.2785,
+              "why_fit": "분야 직접 매칭은 없으나 관련 가능성 있음",
+              "next_action": "상세 요건 확인 후 지원 준비",
+              "source_chain": [
+                "https://tulipprotocol.notion.site/Developer-Tulip-Farmers-Fund-Resources-796fb02d8162446eb39fd9bbcc953679"
+              ],
+              "updated_at": "2026-03-11T15:43:14"
+            },
+            {
+              "opportunity_id": "opp_863e83acb49f",
+              "organization": "Founder Institute",
+              "program": "Founder Institute Core Program",
+              "category": "accelerator",
+              "status": "unknown",
+              "apply_url": "https://fi.co/core",
+              "days_left": null,
+              "source_tier": 3,
+              "confidence": 0.495,
+              "fit_score": 0.15,
+              "priority_score": 0.2695,
+              "why_fit": "분야 직접 매칭은 없으나 관련 가능성 있음",
+              "next_action": "상세 요건 확인 후 지원 준비",
+              "source_chain": [
+                "https://fi.co/core"
+              ],
+              "updated_at": "2026-03-11T15:43:14"
+            },
+            {
+              "opportunity_id": "opp_1bd446c19958",
+              "organization": "Ethereum Foundation",
+              "program": "Ethereum Ecosystem Support Program",
+              "category": "grant",
+              "status": "unknown",
+              "apply_url": "https://esp.ethereum.foundation/about/how-we-support",
+              "days_left": null,
+              "source_tier": 3,
+              "confidence": 0.495,
+              "fit_score": 0.15,
+              "priority_score": 0.2675,
+              "why_fit": "분야 직접 매칭은 없으나 관련 가능성 있음",
+              "next_action": "상세 요건 확인 후 지원 준비",
+              "source_chain": [
+                "https://esp.ethereum.foundation/about/how-we-support"
+              ],
+              "updated_at": "2026-03-11T15:43:14"
+            },
+            {
+              "opportunity_id": "opp_a5817dc95ac1",
+              "organization": "Superteam",
+              "program": "Solana SuperTeam Microgrants",
+              "category": "grant",
+              "status": "unknown",
+              "apply_url": "https://earn.superteam.fun/grants",
+              "days_left": null,
+              "source_tier": 3,
+              "confidence": 0.495,
+              "fit_score": 0.15,
+              "priority_score": 0.2675,
+              "why_fit": "분야 직접 매칭은 없으나 관련 가능성 있음",
+              "next_action": "상세 요건 확인 후 지원 준비",
+              "source_chain": [
+                "https://earn.superteam.fun/grants"
+              ],
+              "updated_at": "2026-03-11T15:43:14"
+            },
+            {
+              "opportunity_id": "opp_84344ba3551c",
+              "organization": "MolochDAO",
+              "program": "MolochDAO Grants",
+              "category": "grant",
+              "status": "unknown",
+              "apply_url": "https://molochdao.com/",
+              "days_left": null,
+              "source_tier": 3,
+              "confidence": 0.495,
+              "fit_score": 0.1,
+              "priority_score": 0.2665,
+              "why_fit": "분야 직접 매칭은 없으나 관련 가능성 있음",
+              "next_action": "상세 요건 확인 후 지원 준비",
+              "source_chain": [
+                "https://molochdao.com/"
+              ],
+              "updated_at": "2026-03-11T15:43:14"
+            },
+            {
+              "opportunity_id": "opp_005f60bf5873",
+              "organization": "Base",
+              "program": "Base grants",
+              "category": "grant",
+              "status": "unknown",
+              "apply_url": "https://paragraph.com/@grants.base.eth/calling-based-builders?referrer=0xC0Ee6782Cb958250Bb87EfA7e9dD4D900C2dE4Da",
+              "days_left": null,
+              "source_tier": 3,
+              "confidence": 0.455,
+              "fit_score": 0.15,
+              "priority_score": 0.2575,
+              "why_fit": "분야 직접 매칭은 없으나 관련 가능성 있음",
+              "next_action": "상세 요건 확인 후 지원 준비",
+              "source_chain": [
+                "https://paragraph.com/@grants.base.eth/calling-based-builders?referrer=0xC0Ee6782Cb958250Bb87EfA7e9dD4D900C2dE4Da"
+              ],
+              "updated_at": "2026-03-11T15:43:14"
+            }
+          ]
+        }
+      ],
+      "final_metrics": {
+        "top_result_count": 10,
+        "actionable_top10_count": 0,
+        "high_fit_verified_count": 0,
+        "matched_anchor_count": 1,
+        "missing_anchor_count": 5,
+        "profile_specific_recall": 0.1667,
+        "stale_top10_count": 10,
+        "average_priority_score": 0.2767,
+        "social_candidate_count": 0,
+        "social_candidate_ratio": 0.0,
+        "candidate_to_ingested_ratio": 0.54,
+        "rounds_executed": 1,
+        "matched_anchors": [
+          "Ethereum Ecosystem Support Program"
+        ]
+      },
+      "goal": {
+        "met": false,
+        "failed_metrics": [
+          "actionable_top10_count",
+          "high_fit_verified_count",
+          "profile_specific_recall",
+          "missing_anchor_count"
+        ],
+        "checks": [
+          {
+            "metric": "actionable_top10_count",
+            "value": 0,
+            "rule": {
+              "gte": 4
+            },
+            "passed": false,
+            "detail": "0 >= 4"
+          },
+          {
+            "metric": "high_fit_verified_count",
+            "value": 0,
+            "rule": {
+              "gte": 2
+            },
+            "passed": false,
+            "detail": "0 >= 2"
+          },
+          {
+            "metric": "profile_specific_recall",
+            "value": 0.1667,
+            "rule": {
+              "gte": 0.34
+            },
+            "passed": false,
+            "detail": "0.1667 >= 0.34"
+          },
+          {
+            "metric": "missing_anchor_count",
+            "value": 5,
+            "rule": {
+              "lte": 4
+            },
+            "passed": false,
+            "detail": "5 <= 4"
+          }
+        ]
+      },
+      "recommended_actions": [
+        "escalate_to_deep_search",
+        "expand_apply_and_official_page_queries",
+        "bias_official_domains_and_reference_sources",
+        "add_profile_specific_anchor_and_thesis_variants",
+        "expand_target_ecosystem_and_vc_cohort_queries"
+      ]
+    }
+  ],
+  "recommended_actions": [
+    "escalate_to_deep_search",
+    "expand_apply_and_official_page_queries",
+    "bias_official_domains_and_reference_sources",
+    "add_profile_specific_anchor_and_thesis_variants",
+    "expand_target_ecosystem_and_vc_cohort_queries"
+  ]
+}

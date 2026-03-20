@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS opportunities (
     program_id      TEXT NOT NULL REFERENCES programs(id),
     cycle_key       TEXT,                       -- 'S2024' 등 배치 식별자
     status          TEXT NOT NULL DEFAULT 'unknown',
-                                                -- 'open' | 'rolling' | 'deadline' | 'upcoming' | 'closed' | 'unknown'
+                                                -- 'open' | 'rolling' | 'upcoming' | 'closed' | 'unknown'
     deadline_at     TIMESTAMP,                  -- null 허용 (rolling)
     days_left       INTEGER,                    -- 계산값
     budget_amount   REAL,
@@ -81,8 +81,13 @@ CREATE TABLE IF NOT EXISTS company_profiles (
     company_name    TEXT NOT NULL,
     stage           TEXT,                       -- 'idea' | 'mvp' | 'seed' | 'series_a' | ...
     sector_tags     TEXT,                       -- JSON array
+    subsector_tags  TEXT,                       -- JSON array
     projects        TEXT,                       -- JSON array: [{name, priority, tags}]
     description     TEXT,
+    geography       TEXT,                       -- 'South Korea' | 'Global' etc.
+    funding_goal    TEXT,                       -- '$500K-$1M' etc.
+    product_summary TEXT,
+    target_ecosystems TEXT,                     -- JSON array: ["ethereum", "solana"]
     telegram_user_id INTEGER,                   -- Telegram 사용자 연결 (multi-user)
     updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -118,10 +123,11 @@ CREATE TABLE IF NOT EXISTS fit_recommendations (
     company_profile_id  TEXT NOT NULL REFERENCES company_profiles(id),
     project_name        TEXT,                   -- 'HOOT' | 'StockClaw' 등
     fit_score           REAL NOT NULL,          -- 0.0~1.0
-    priority_score      REAL,                   -- 4-factor 가중 합산 (fit*0.35 + urgency*0.35 + value*0.15 + confidence*0.15)
+    priority_score      REAL,                   -- 5-factor 가중 합산
     why_fit             TEXT,
     next_action         TEXT,
     urgency_score       REAL,
+    actionability_score REAL,                   -- 지원 실행 가능성
     expected_value      REAL,
     confidence          REAL,
     computed_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -151,6 +157,26 @@ CREATE TABLE IF NOT EXISTS submission_tasks (
     updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS social_monitoring_events (
+    id                      TEXT PRIMARY KEY,
+    source_url              TEXT NOT NULL UNIQUE,
+    matched_account         TEXT,
+    matched_account_type    TEXT,
+    monitoring_round        TEXT,
+    organization            TEXT,
+    program                 TEXT,
+    category                TEXT,
+    signal_type             TEXT,
+    apply_url               TEXT,
+    source_tier             INTEGER DEFAULT 5,
+    confidence              REAL DEFAULT 0.0,
+    promoted_opportunity_id TEXT REFERENCES opportunities(id),
+    verification_status     TEXT DEFAULT 'pending',
+    notified                BOOLEAN DEFAULT FALSE,
+    discovered_at           TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    notified_at             TIMESTAMP
+);
+
 -- ============================================================
 -- Indexes
 -- ============================================================
@@ -169,3 +195,6 @@ CREATE INDEX IF NOT EXISTS idx_observations_org_id ON observations(org_id);
 CREATE INDEX IF NOT EXISTS idx_profiles_telegram ON company_profiles(telegram_user_id);
 CREATE INDEX IF NOT EXISTS idx_fit_opp_profile ON fit_recommendations(opportunity_id, company_profile_id);
 CREATE INDEX IF NOT EXISTS idx_change_events_entity ON change_events(entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_social_events_status ON social_monitoring_events(verification_status, notified);
+CREATE INDEX IF NOT EXISTS idx_social_events_round ON social_monitoring_events(monitoring_round);
+CREATE INDEX IF NOT EXISTS idx_social_events_opp ON social_monitoring_events(promoted_opportunity_id);

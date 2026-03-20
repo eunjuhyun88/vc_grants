@@ -233,15 +233,16 @@ class MatchingAgent(BaseAgent):
 
     async def _execute(self, input_data: dict) -> dict:
         """
-        PRD 기준 4-factor priority.
+        PRD v1.1 기준 5-factor priority.
 
         1. opportunity 조회
         2. company_profile 조회
-        3. fit_score 계산 (sector match + stage match + ecosystem relevance)
+        3. fit_score 계산
         4. urgency_score 계산 (deadline 기반)
-        5. expected_value 계산 (funding amount 기반)
-        6. confidence = fact_confidence
-        7. priority_score = fit*0.35 + urgency*0.35 + value*0.15 + confidence*0.15
+        5. actionability_score 계산
+        6. expected_value 계산
+        7. confidence_score 계산
+        8. priority_score = fit*0.35 + urgency*0.25 + actionability*0.20 + value*0.10 + confidence*0.10
         8. persist=True면 fit_recommendations에 저장
         """
         inp = MatchingInput(**input_data)
@@ -293,17 +294,18 @@ class MatchingAgent(BaseAgent):
         """
 
     def _calculate_priority_score(
-        self, fit: float, urgency: float, value: float, confidence: float,
+        self, fit: float, urgency: float, actionability: float, value: float, confidence: float,
         intent: str = "default"
     ) -> float:
         """
-        priority_score = 4-factor 가중 합산 (PRD 기준).
+        priority_score = 5-factor 가중 합산 (PRD v1.1 기준).
 
         WEIGHTS[intent]:
-        - default: fit*0.35 + urgency*0.35 + value*0.15 + confidence*0.15
-        - urgent: fit*0.15 + urgency*0.55 + value*0.15 + confidence*0.15
-        - highest_money: fit*0.20 + urgency*0.15 + value*0.50 + confidence*0.15
-        - best_ecosystem_match: fit*0.55 + urgency*0.20 + value*0.10 + confidence*0.15
+        - default: fit*0.35 + urgency*0.25 + actionability*0.20 + value*0.10 + confidence*0.10
+        - urgent: fit*0.20 + urgency*0.45 + actionability*0.15 + value*0.10 + confidence*0.10
+        - biggest_check: fit*0.20 + urgency*0.10 + actionability*0.15 + value*0.45 + confidence*0.10
+        - ready_now: fit*0.25 + urgency*0.15 + actionability*0.35 + value*0.10 + confidence*0.15
+        - best_fit: fit*0.50 + urgency*0.15 + actionability*0.15 + value*0.10 + confidence*0.10
         """
 
     async def batch_rank(
@@ -317,20 +319,21 @@ class MatchingAgent(BaseAgent):
         전체 eligible opportunity 대상 priority_score 계산 후 상위 N개 반환.
 
         1. list_opportunities_curated() 호출
-        2. 각 기회에 대해 fit/urgency/value/confidence 계산
+        2. 각 기회에 대해 fit/urgency/actionability/value/confidence 계산
         3. intent별 가중치로 priority_score 산출
         4. 정렬 후 top_n 반환
         """
 ```
 
-### Priority Weights 상수 (PRD 기준)
+### Priority Weights 상수 (PRD v1.1 기준)
 
 ```python
 PRIORITY_WEIGHTS = {
-    "default":              {"fit": 0.35, "urgency": 0.35, "value": 0.15, "confidence": 0.15},
-    "urgent":               {"fit": 0.15, "urgency": 0.55, "value": 0.15, "confidence": 0.15},
-    "highest_money":        {"fit": 0.20, "urgency": 0.15, "value": 0.50, "confidence": 0.15},
-    "best_ecosystem_match": {"fit": 0.55, "urgency": 0.20, "value": 0.10, "confidence": 0.15},
+    "default":       {"fit": 0.35, "urgency": 0.25, "actionability": 0.20, "value": 0.10, "confidence": 0.10},
+    "urgent":        {"fit": 0.20, "urgency": 0.45, "actionability": 0.15, "value": 0.10, "confidence": 0.10},
+    "biggest_check": {"fit": 0.20, "urgency": 0.10, "actionability": 0.15, "value": 0.45, "confidence": 0.10},
+    "ready_now":     {"fit": 0.25, "urgency": 0.15, "actionability": 0.35, "value": 0.10, "confidence": 0.15},
+    "best_fit":      {"fit": 0.50, "urgency": 0.15, "actionability": 0.15, "value": 0.10, "confidence": 0.10},
 }
 ```
 

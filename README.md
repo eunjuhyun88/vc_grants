@@ -23,7 +23,7 @@ VC fundraising pipeline automation - search, apply, follow-up, and track investm
 ## 1) Overview
 
 - Name: `VC_Grants`
-- Stack: `Svelte / TypeScript / Python`
+- Stack: `Python / SQLite / Telegram`
 - Phase: `re-design`
 - Next deadline: `TBD`
 
@@ -70,6 +70,7 @@ npm run safe:status
 - `npm run ctx:checkpoint`
 - `npm run ctx:compact`
 - `npm run ctx:check -- --strict`
+- `npm run ctx:status`
 - `npm run ctx:restore -- --mode brief`
 - `npm run ctx:restore -- --mode handoff`
 - `npm run ctx:pin`
@@ -116,15 +117,18 @@ npm run safe:status
    - machine state, branch state, changed files
 2. `checkpoint`
    - semantic working memory
-3. `brief`
-   - fast resume surface
-4. `handoff`
+3. `status`
+   - single latest resume surface for the current branch or work item
+4. `brief`
+   - compact resume artifact with slightly more detail
+5. `handoff`
    - fuller transfer artifact for the next session or agent
 
 Paths:
 
 - `.agent-context/snapshots/`
 - `.agent-context/checkpoints/`
+- `.agent-context/status/`
 - `.agent-context/briefs/`
 - `.agent-context/handoffs/`
 - `.agent-context/compact/`

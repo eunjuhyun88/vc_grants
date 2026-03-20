@@ -32,10 +32,26 @@
 | `docs/SYSTEM_INTENT.md` | `canonical-entry` | `canonical` | Canonical system intent and invariants. |
 | `docs/TOOL_DESIGN.md` | `canonical-entry` | `canonical` | Canonical tool contract design doc. |
 | `docs/archive/README.md` | `archive-router` | `tracked-only` | Archive interpretation policy. |
+| `docs/design-docs/AGENT_CONTRACTS.md` | `design-doc` | `canonical` | Structured design document. |
+| `docs/design-docs/ARCHITECTURE.md` | `design-doc` | `canonical` | Structured design document. |
+| `docs/design-docs/AUTORESEARCH_ADOPTION.md` | `design-doc` | `canonical` | Structured design document. |
+| `docs/design-docs/DATA_FILL_SPEC.md` | `design-doc` | `canonical` | Structured design document. |
+| `docs/design-docs/DB_SCHEMA.md` | `design-doc` | `canonical` | Structured design document. |
+| `docs/design-docs/ENTITY_MODEL.md` | `design-doc` | `canonical` | Structured design document. |
+| `docs/design-docs/OPERATIONS_MODEL.md` | `design-doc` | `canonical` | Structured design document. |
+| `docs/design-docs/OUTPUT_RULES.md` | `design-doc` | `canonical` | Structured design document. |
+| `docs/design-docs/PRIORITY_ALGORITHM.md` | `design-doc` | `canonical` | Structured design document. |
+| `docs/design-docs/SOCIAL_DISCOVERY.md` | `design-doc` | `canonical` | Structured design document. |
+| `docs/design-docs/TELEGRAM_COMMAND_SPEC.md` | `design-doc` | `canonical` | Structured design document. |
+| `docs/design-docs/TELEGRAM_UX.md` | `design-doc` | `canonical` | Structured design document. |
 | `docs/design-docs/core-beliefs.md` | `design-doc` | `canonical` | Structured design document. |
 | `docs/design-docs/index.md` | `design-doc` | `canonical` | Structured design document. |
+| `docs/exec-plans/active/AUTORESEARCH_GOAL_CONVERGENCE.md` | `active-plan` | `canonical` | Active execution plan. |
+| `docs/exec-plans/active/MVP_IMPLEMENTATION.md` | `active-plan` | `canonical` | Active execution plan. |
 | `docs/exec-plans/active/README.md` | `active-plan` | `canonical` | Active execution plan. |
+| `docs/exec-plans/active/SPEC_CODE_GAP_AUDIT.md` | `active-plan` | `canonical` | Active execution plan. |
 | `docs/exec-plans/active/context-system-rollout.md` | `active-plan` | `canonical` | Active execution plan. |
+| `docs/exec-plans/active/funding-search-v1.md` | `active-plan` | `canonical` | Active execution plan. |
 | `docs/exec-plans/completed/README.md` | `completed-plan` | `historical` | Completed execution plan. |
 | `docs/exec-plans/index.md` | `plans-support` | `canonical` | Planning support doc. |
 | `docs/exec-plans/tech-debt-tracker.md` | `plans-support` | `canonical` | Planning support doc. |
@@ -44,6 +60,13 @@
 | `docs/generated/project-truth-bootstrap.md` | `generated` | `generated` | Generated artifact. |
 | `docs/generated/route-map.md` | `generated` | `generated` | Generated artifact. |
 | `docs/generated/store-authority-map.md` | `generated` | `generated` | Generated artifact. |
+| `docs/product-specs/AGENTS_SPEC.md` | `product-spec` | `canonical` | Structured surface spec. |
+| `docs/product-specs/BOT_SPEC.md` | `product-spec` | `canonical` | Structured surface spec. |
+| `docs/product-specs/DB_SPEC.md` | `product-spec` | `canonical` | Structured surface spec. |
+| `docs/product-specs/DEV_SETUP.md` | `product-spec` | `canonical` | Structured surface spec. |
+| `docs/product-specs/PIPELINE_SPEC.md` | `product-spec` | `canonical` | Structured surface spec. |
+| `docs/product-specs/PRD.md` | `product-spec` | `canonical` | Structured surface spec. |
+| `docs/product-specs/TYPES_SPEC.md` | `product-spec` | `canonical` | Structured surface spec. |
 | `docs/product-specs/core.md` | `product-spec` | `canonical` | Structured surface spec. |
 | `docs/product-specs/index.md` | `product-spec` | `canonical` | Structured surface spec. |
 | `docs/references/index.md` | `reference` | `supporting` | Reference shelf. |

@@ -19,7 +19,7 @@ import {
 } from './coordination-lib.mjs';
 
 function usage() {
-  console.log('Usage: node scripts/dev/claim-work.mjs --work-id <id> --agent <name> --surface <surface> --summary <text> [--path <prefix>] [--doc <path>] [--depends-on <id>] [--lease-minutes <n>] [--status <active|blocked>]');
+  console.log('Usage: node scripts/dev/claim-work.mjs --work-id <id> --agent <name> --surface <surface> --summary <text> [--path <prefix>|.] [--doc <path>] [--depends-on <id>] [--lease-minutes <n>] [--status <active|blocked>]');
 }
 
 const rootDir = resolveRootDir();

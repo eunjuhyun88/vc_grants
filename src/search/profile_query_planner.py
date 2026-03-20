@@ -19,7 +19,7 @@ from src.core.types import CompanyProfile
 TAG_KEYWORDS: dict[str, list[str]] = {
     "ai_infra": ["AI infrastructure", "AI infra"],
     "decentralized_ai": ["decentralized AI", "distributed AI"],
-    "crypto_infra": ["crypto infrastructure", "blockchain infra"],
+    "crypto_infra": ["crypto infrastructure", "blockchain infra", "web3", "blockchain"],
     "distributed_compute": ["distributed compute", "GPU network", "compute network"],
     "personal_model_training": ["AI model training", "personal AI"],
     "agent_infra": ["AI agent infrastructure", "agent framework"],
@@ -43,6 +43,14 @@ TAG_KEYWORDS: dict[str, list[str]] = {
     "privacy": ["privacy protocol", "confidential computing"],
     "layer2": ["layer 2", "L2 scaling"],
     "depin": ["DePIN", "decentralized physical infrastructure"],
+}
+
+RELATED_ECOSYSTEMS_BY_TAG: dict[str, list[str]] = {
+    "ai_infra": ["ethereum", "near", "bittensor", "monad", "chainlink"],
+    "decentralized_ai": ["bittensor", "near", "ethereum", "solana"],
+    "crypto_infra": ["ethereum", "solana", "arbitrum", "base", "monad", "chainlink"],
+    "distributed_compute": ["bittensor", "near", "avalanche", "monad"],
+    "agent_infra": ["near", "ethereum", "base", "chainlink"],
 }
 
 # ============================================================
@@ -75,6 +83,7 @@ def generate_queries(profile: CompanyProfile) -> list[str]:
         최대 20개 쿼리 (중복 제거 후)
     """
     queries: list[str] = []
+    ecosystems = get_priority_ecosystems(profile)
 
     # ── 축 1: sector + funding type ──
     sector_keywords = _get_sector_keywords(profile.sector_tags)
@@ -84,9 +93,16 @@ def generate_queries(profile: CompanyProfile) -> list[str]:
         queries.append(f"{kw} ecosystem builder program funding")
 
     # ── 축 2: target ecosystem + grant/accelerator ──
-    for eco in (profile.target_ecosystems or [])[:5]:
+    for eco in ecosystems[:6]:
         queries.append(f"{eco} ecosystem grants funding program 2026")
         queries.append(f"{eco} accelerator builder program apply")
+        queries.append(f"{eco} official builder program apply 2026")
+
+    # ── 축 2.5: ecosystem + thesis 맞춤 ──
+    for eco in ecosystems[:4]:
+        for kw in sector_keywords[:2]:
+            queries.append(f"{eco} {kw} funding program")
+            queries.append(f"{eco} {kw} accelerator apply 2026")
 
     # ── 축 3: 새로운 VC+Ecosystem 코호트 발견 (핵심) ──
     queries.extend([
@@ -98,6 +114,8 @@ def generate_queries(profile: CompanyProfile) -> list[str]:
         "VC backed crypto builder cohort application",
         "AI web3 accelerator seed funding open",
         "crypto infra founder program investment 2026",
+        "ecosystem backed crypto cohort apply 2026",
+        "builder program seed investment official apply",
     ])
 
     # ── 축 4: 경쟁사/유사 프로젝트 기반 발견 ──
@@ -124,11 +142,13 @@ def generate_social_queries(profile: CompanyProfile) -> list[str]:
     웹 검색보다 짧고 키워드 위주.
     """
     queries: list[str] = []
+    ecosystems = get_priority_ecosystems(profile)
 
     # ecosystem별 펀딩 관련
-    for eco in (profile.target_ecosystems or [])[:5]:
+    for eco in ecosystems[:6]:
         queries.append(f"{eco} grants")
         queries.append(f"{eco} accelerator")
+        queries.append(f"{eco} builder program")
 
     # 일반 펀딩 키워드
     queries.extend([
@@ -150,10 +170,54 @@ def generate_social_queries(profile: CompanyProfile) -> list[str]:
     return unique[:15]
 
 
+def generate_social_watch_terms(profile: CompanyProfile) -> list[str]:
+    """VC/L1/L2 계정 watchlist 기반 소셜 탐색에 쓸 신호 용어 생성.
+
+    일반 social query보다 더 짧고, 계정 타게팅 쿼리에 섞을 키워드만 남긴다.
+    """
+    terms: list[str] = []
+    ecosystems = get_priority_ecosystems(profile)
+    sector_keywords = _get_sector_keywords([
+        *profile.sector_tags,
+        *profile.subsector_tags,
+    ])
+
+    for ecosystem in ecosystems[:4]:
+        terms.append(f"{ecosystem} grant")
+        terms.append(f"{ecosystem} funding")
+        terms.append(f"{ecosystem} accelerator")
+
+    for keyword in sector_keywords[:3]:
+        terms.append(f"{keyword} grant")
+        terms.append(f"{keyword} accelerator")
+        terms.append(f"{keyword} investment")
+
+    terms.extend([
+        "applications open",
+        "cohort",
+        "builder program",
+        "ecosystem fund",
+        "seed investment",
+        "backed",
+    ])
+
+    seen: set[str] = set()
+    unique: list[str] = []
+    for term in terms:
+        key = term.lower().strip()
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(term)
+
+    return unique[:18]
+
+
 def get_matching_keywords(profile: CompanyProfile) -> list[str]:
     """참조 데이터 매칭용 키워드 리스트 반환.
 
-    sector_tags 원본 + TAG_KEYWORDS 매핑의 자연어 + target_ecosystems.
+    sector_tags 원본 + TAG_KEYWORDS 매핑의 자연어 + target_ecosystems
+    + funding_goal에 따른 discovery intent keywords.
     """
     keywords: list[str] = []
 
@@ -165,7 +229,15 @@ def get_matching_keywords(profile: CompanyProfile) -> list[str]:
         keywords.append(tag)
         keywords.extend(TAG_KEYWORDS.get(tag, []))
 
-    keywords.extend(profile.target_ecosystems or [])
+    keywords.extend(get_priority_ecosystems(profile))
+
+    funding_goal = (profile.funding_goal or "").lower()
+    if "grant" in funding_goal:
+        keywords.extend(["grant", "grants", "funding"])
+    if "accelerator" in funding_goal:
+        keywords.extend(["accelerator", "cohort", "incubator", "builder program"])
+    if "seed_vc" in funding_goal or "seed vc" in funding_goal or "vc" in funding_goal:
+        keywords.extend(["vc", "venture", "seed investment", "vc cohort"])
 
     # dedup preserving order
     seen: set[str] = set()
@@ -194,6 +266,21 @@ def _get_sector_keywords(sector_tags: list[str]) -> list[str]:
             # 매핑이 없으면 tag 자체를 사용 (underscore → space)
             keywords.append(tag.replace("_", " "))
     return keywords
+
+
+def get_priority_ecosystems(profile: CompanyProfile) -> list[str]:
+    """프로필 target_ecosystems + sector 기반 관련 ecosystem 확장."""
+    ecosystems: list[str] = list(profile.target_ecosystems or [])
+    seen = {eco.lower() for eco in ecosystems}
+
+    for tag in [*profile.sector_tags, *profile.subsector_tags]:
+        for eco in RELATED_ECOSYSTEMS_BY_TAG.get(tag, []):
+            if eco.lower() in seen:
+                continue
+            seen.add(eco.lower())
+            ecosystems.append(eco)
+
+    return ecosystems
 
 
 def _get_similar_projects(sector_tags: list[str]) -> list[str]:

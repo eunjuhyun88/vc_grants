@@ -22,6 +22,9 @@ from src.db.entity_store import EntityStore
 from src.agents.discovery import DiscoveryAgent
 from src.agents.verification import VerificationAgent
 from src.agents.matching import MatchingAgent
+from src.core.opportunity_ingestor import OpportunityIngestor
+from src.core.opportunity_verifier import OpportunityVerifier
+from src.core.opportunity_matcher import OpportunityMatcher
 from src.core.types import *
 from src.core.config import config
 from src.core.errors import PipelineError
@@ -35,37 +38,45 @@ class FundingPipeline:
         self.discovery = DiscoveryAgent(store, config)
         self.verification = VerificationAgent(store, config)
         self.matching = MatchingAgent(store, config)
+        self.ingestor = OpportunityIngestor(store)
+        self.opportunity_verifier = OpportunityVerifier(store, self.verification)
+        self.opportunity_matcher = OpportunityMatcher(store, self.matching)
 
     async def run_discovery_pipeline(
         self,
         query: str,
         category: ProgramCategory | None = None,
-        company_profile_id: str | None = None
+        company_profile_id: str | None = None,
+        sources: list[str] | None = None,
+        hint_queries: list[str] | None = None,
     ) -> PipelineResult:
         """
         전체 파이프라인 실행.
 
         단계:
         1. Discovery: 검색 + fetch + parse
-        2. Ingest: raw → Organization + Program + Opportunity 생성
-        3. Verification: 각 opportunity 검증
-        4. Matching: company_profile 있으면 fit 계산
+        2. Ingest: raw → OpportunityIngestor → Organization + Program + Opportunity 생성
+        3. Verification: OpportunityVerifier가 verification source 수집 + agent 실행
+        4. Matching: OpportunityMatcher가 matching 실행 + shared rank policy 처리
 
         에러 처리: 단계별 실패 시 partial result 유지.
         - Discovery 실패 → 빈 결과 반환
         - 개별 opportunity ingest 실패 → 해당 건만 skip
         - Verification 실패 → output_status='pending' 유지
         - Matching 실패 → fit_score 없이 진행
+
+        runtime 확장:
+        - `sources`: user-pasted URLs나 reference bootstrap source를 direct fetch path로 주입
+        - `hint_queries`: promoted autoresearch reflection이 밀어주는 query variants를 discovery agent에 추가 주입
         """
 
-    async def _ingest_raw_opportunity(self, raw: dict) -> str | None:
+    async def ingest_raw_opportunity(self, raw: dict) -> str | None:
         """
-        raw opportunity → DB 저장.
+        raw opportunity → OpportunityIngestor를 통해 DB 저장.
 
         1. org_name → normalize → organization 조회/생성
         2. program_name → normalize → program 조회/생성
         3. opportunity 생성
-        4. apply_url 있으면 application_endpoint 생성
 
         반환: opportunity_id (실패 시 None)
 
@@ -76,7 +87,7 @@ class FundingPipeline:
         """
         opportunity 목록 일괄 검증.
 
-        반환: {opp_id: VerificationOutput}
+        OpportunityVerifier를 통해 source dedup / limit / sync policy를 공통 처리한다.
         실패한 건은 skip (output_status='pending' 유지).
         """
 
@@ -86,6 +97,7 @@ class FundingPipeline:
         """
         opportunity 목록 일괄 fit 계산.
 
+        OpportunityMatcher를 통해 공통 matching execution path를 재사용한다.
         반환: {opp_id: MatchingOutput}
         실패한 건은 skip (fit_score 없음).
         """
@@ -198,7 +210,7 @@ async def main():
         result = await pipeline.run_discovery_pipeline(
             query=args.query,
             category=args.category,
-            company_profile_id=args.profile
+            company_profile_id=args.profile,
         )
         print(result.summary)
 

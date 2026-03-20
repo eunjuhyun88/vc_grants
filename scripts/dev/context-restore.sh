@@ -2,9 +2,10 @@
 set -euo pipefail
 
 usage() {
-	echo "Usage: bash scripts/dev/context-restore.sh --mode <brief|handoff|context|files|list> [--branch <name>] [--work-id <id>] [--list]"
+	echo "Usage: bash scripts/dev/context-restore.sh --mode <status|brief|handoff|context|files|list> [--branch <name>] [--work-id <id>] [--list]"
 	echo ""
 	echo "Modes:"
+	echo "  --mode status   show the latest single-status resume surface"
 	echo "  --mode brief    show the compact branch/work brief"
 	echo "  --mode handoff  show the fuller handoff artifact"
 	echo "  --mode context  compatibility alias for --mode brief"
@@ -54,6 +55,7 @@ done
 if [ -z "$MODE" ]; then
 	echo "[ctx:restore] ambiguous request."
 	echo "[ctx:restore] choose explicit mode:"
+	echo "  --mode status"
 	echo "  --mode brief"
 	echo "  --mode handoff"
 	echo "  --mode files"
@@ -69,12 +71,16 @@ fi
 
 BRANCH_SAFE="$(sanitize "${TARGET_BRANCH//\//-}")"
 BASE_DIR="$ROOT_DIR/.agent-context"
+STATUS_FILE="$BASE_DIR/status/${BRANCH_SAFE}-latest.md"
 BRIEF_FILE="$BASE_DIR/briefs/${BRANCH_SAFE}-latest.md"
 HANDOFF_FILE="$BASE_DIR/handoffs/${BRANCH_SAFE}-latest.md"
 CHECKPOINT_FILE="$BASE_DIR/checkpoints/${BRANCH_SAFE}-latest.md"
 
 if [ -n "$WORK_ID" ]; then
 	WORK_SAFE="$(sanitize "$WORK_ID")"
+	if [ -f "$BASE_DIR/status/${WORK_SAFE}.md" ]; then
+		STATUS_FILE="$BASE_DIR/status/${WORK_SAFE}.md"
+	fi
 	if [ -f "$BASE_DIR/briefs/${WORK_SAFE}.md" ]; then
 		BRIEF_FILE="$BASE_DIR/briefs/${WORK_SAFE}.md"
 	fi
@@ -88,6 +94,13 @@ fi
 
 if [ "$LIST_ONLY" -eq 1 ] || [ "$MODE" = "list" ]; then
 	echo "[ctx:restore] branch=$TARGET_BRANCH"
+	echo ""
+	echo "status:"
+	if [ -f "$STATUS_FILE" ]; then
+		echo "- ${STATUS_FILE#$ROOT_DIR/}"
+	else
+		echo "- (none)"
+	fi
 	echo ""
 	echo "checkpoint:"
 	if [ -f "$CHECKPOINT_FILE" ]; then
@@ -131,6 +144,9 @@ fi
 
 SOURCE_FILE=""
 case "$MODE" in
+	status)
+		SOURCE_FILE="$STATUS_FILE"
+		;;
 	brief)
 		SOURCE_FILE="$BRIEF_FILE"
 		;;
@@ -145,8 +161,8 @@ case "$MODE" in
 esac
 
 if [ ! -f "$SOURCE_FILE" ]; then
-	if [ "$MODE" = "brief" ] && [ -f "$CHECKPOINT_FILE" ]; then
-		echo "[ctx:restore] brief missing; regenerating from latest checkpoint/snapshot."
+	if [ "$MODE" = "brief" ] || [ "$MODE" = "status" ]; then
+		echo "[ctx:restore] $MODE missing; regenerating from latest checkpoint/snapshot."
 		if [ -n "$WORK_ID" ]; then
 			bash scripts/dev/context-compact.sh --work-id "$WORK_ID" >/dev/null
 		else

@@ -30,12 +30,15 @@ from src.core.types import (
     OutputStatus,
     Program,
     ProgramCategory,
+    SocialMonitoringEvent,
     deserialize_json_field,
     generate_id,
     serialize_json_field,
 )
+from src.core.types import BUCKET_TO_CATEGORIES
 from src.db.queries import (
     CURATED_VIEW_CATEGORY_FILTER,
+    CURATED_VIEW_DISPLAY_BUCKET_FILTER_TEMPLATE,
     CURATED_VIEW_ORDER,
     CURATED_VIEW_SQL,
 )
@@ -270,6 +273,21 @@ class EntityStore:
         rows = await cursor.fetchall()
         return [self._row_to_program(r) for r in rows]
 
+    async def update_program(self, program_id: str, **fields: Any) -> None:
+        """프로그램 필드 업데이트."""
+        if not fields:
+            return
+        if "category" in fields and isinstance(fields["category"], ProgramCategory):
+            fields["category"] = fields["category"].value
+        fields["updated_at"] = datetime.now().isoformat()
+        set_clause = ", ".join(f"{k} = ?" for k in fields)
+        values = list(fields.values()) + [program_id]
+        await self.db.execute(
+            f"UPDATE programs SET {set_clause} WHERE id = ?",
+            values,
+        )
+        await self.db.commit()
+
     def _row_to_program(self, row: aiosqlite.Row) -> Program:
         return Program(
             id=row["id"],
@@ -326,6 +344,51 @@ class EntityStore:
             return None
         return self._row_to_opportunity(row)
 
+    async def get_latest_opportunity_by_program_and_apply_url(
+        self,
+        program_id: str,
+        apply_url: str | None,
+    ) -> Opportunity | None:
+        """program + apply_url 조합으로 가장 최근 기회 조회.
+
+        Seed import와 반복 discovery에서 같은 intake/landing page가 다시 들어올 때
+        opportunity를 중복 생성하지 않도록 한다.
+        """
+        if not apply_url:
+            return None
+        cursor = await self.db.execute(
+            """SELECT * FROM opportunities
+               WHERE program_id = ? AND apply_url = ?
+               ORDER BY updated_at DESC, created_at DESC
+               LIMIT 1""",
+            (program_id, apply_url),
+        )
+        row = await cursor.fetchone()
+        if row is None:
+            return None
+        return self._row_to_opportunity(row)
+
+    async def get_latest_opportunity_by_program(
+        self,
+        program_id: str,
+    ) -> Opportunity | None:
+        """program 단위 최신 기회 조회.
+
+        apply_url이 없고 cycle_key도 없는 seed/update 경로에서 동일 program의
+        대표 opportunity를 업데이트하기 위한 fallback.
+        """
+        cursor = await self.db.execute(
+            """SELECT * FROM opportunities
+               WHERE program_id = ?
+               ORDER BY updated_at DESC, created_at DESC
+               LIMIT 1""",
+            (program_id,),
+        )
+        row = await cursor.fetchone()
+        if row is None:
+            return None
+        return self._row_to_opportunity(row)
+
     async def update_opportunity(self, opp_id: str, **fields: Any) -> None:
         """기회 필드 업데이트. deadline 변경 시 기존 record UPDATE, 새 row 생성 금지."""
         if not fields:
@@ -352,14 +415,18 @@ class EntityStore:
         self,
         company_profile_id: str | None = None,
         category: ProgramCategory | None = None,
+        display_bucket: str | None = None,
         min_confidence: float = 0.75,
         limit: int = 10,
     ) -> list[dict]:
         """
         Curated View 조회 — Eligibility Filter 적용.
-        조건: verified + confidence >= min + tier <= 2 + apply_url + not closed.
+        조건: verified + confidence >= min + tier <= 4 + apply_url + not closed.
         JOIN: organizations, programs, fit_recommendations (LEFT).
         정렬: priority_score DESC, fallback: fact_confidence DESC, days_left ASC.
+
+        display_bucket: "grants"|"cohorts"|"funds" → 해당 bucket에 매핑된 category들로 필터.
+        category: 단일 ProgramCategory로 필터 (display_bucket과 동시 사용 시 display_bucket 우선).
         """
         sql = CURATED_VIEW_SQL
         params: dict[str, Any] = {
@@ -367,13 +434,43 @@ class EntityStore:
             "min_confidence": min_confidence,
             "limit": limit,
         }
-        if category:
+
+        if display_bucket and display_bucket in BUCKET_TO_CATEGORIES:
+            # display_bucket 기반 IN 절 (named params 사용 불가 → positional 혼용 불가)
+            # 따라서 직접 문자열로 IN 절 생성 (안전: 값이 상수 맵에서만 옴)
+            categories = BUCKET_TO_CATEGORIES[display_bucket]
+            placeholders = ", ".join(f"'{c}'" for c in categories)
+            sql += CURATED_VIEW_DISPLAY_BUCKET_FILTER_TEMPLATE.format(
+                placeholders=placeholders
+            )
+        elif category:
             sql += CURATED_VIEW_CATEGORY_FILTER
             params["category"] = category.value
+
         sql += CURATED_VIEW_ORDER
         cursor = await self.db.execute(sql, params)
         rows = await cursor.fetchall()
         return [dict(r) for r in rows]
+
+    async def list_opportunities(
+        self,
+        status: OpportunityStatus | None = None,
+        limit: int = 100,
+    ) -> list[Opportunity]:
+        """전체 기회 조회 (MonitoringAgent용). updated_at 오래된 순."""
+        conditions: list[str] = []
+        params: list[Any] = []
+        if status:
+            conditions.append("status = ?")
+            params.append(status.value)
+        where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+        params.append(limit)
+        cursor = await self.db.execute(
+            f"SELECT * FROM opportunities {where} ORDER BY updated_at ASC LIMIT ?",
+            params,
+        )
+        rows = await cursor.fetchall()
+        return [self._row_to_opportunity(r) for r in rows]
 
     async def count_opportunities(
         self,
@@ -474,6 +571,220 @@ class EntityStore:
         )
 
     # ============================================================
+    # Social Monitoring Event CRUD
+    # ============================================================
+
+    async def upsert_social_monitoring_event(
+        self,
+        event: SocialMonitoringEvent,
+    ) -> str:
+        """소셜 탐색 provenance 저장/갱신. source_url 기준 dedup."""
+        await self.db.execute(
+            """INSERT INTO social_monitoring_events
+               (id, source_url, matched_account, matched_account_type, monitoring_round,
+                organization, program, category, signal_type, apply_url,
+                source_tier, confidence, promoted_opportunity_id,
+                verification_status, notified, discovered_at, notified_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+               ON CONFLICT(source_url)
+               DO UPDATE SET
+                matched_account = excluded.matched_account,
+                matched_account_type = excluded.matched_account_type,
+                monitoring_round = excluded.monitoring_round,
+                organization = excluded.organization,
+                program = excluded.program,
+                category = excluded.category,
+                signal_type = excluded.signal_type,
+                apply_url = COALESCE(excluded.apply_url, social_monitoring_events.apply_url),
+                source_tier = excluded.source_tier,
+                confidence = excluded.confidence,
+                promoted_opportunity_id = COALESCE(excluded.promoted_opportunity_id, social_monitoring_events.promoted_opportunity_id),
+                verification_status = excluded.verification_status,
+                notified = CASE
+                    WHEN social_monitoring_events.notified = TRUE THEN TRUE
+                    ELSE excluded.notified
+                END,
+                notified_at = COALESCE(social_monitoring_events.notified_at, excluded.notified_at)""",
+            (
+                event.id,
+                event.source_url,
+                event.matched_account,
+                event.matched_account_type,
+                event.monitoring_round,
+                event.organization,
+                event.program,
+                event.category,
+                event.signal_type,
+                event.apply_url,
+                event.source_tier,
+                event.confidence,
+                event.promoted_opportunity_id,
+                event.verification_status,
+                event.notified,
+                event.discovered_at.isoformat() if event.discovered_at else None,
+                event.notified_at.isoformat() if event.notified_at else None,
+            ),
+        )
+        await self.db.commit()
+        return event.id
+
+    async def sync_social_monitoring_status_for_opportunity(
+        self,
+        opportunity_id: str,
+    ) -> None:
+        """기회 검증 상태를 social provenance 레코드에 반영."""
+        opp = await self.get_opportunity(opportunity_id)
+        if opp is None:
+            return
+
+        verification_status = "pending"
+        if (
+            opp.output_status == OutputStatus.VERIFIED
+            and opp.status in {
+                OpportunityStatus.OPEN,
+                OpportunityStatus.ROLLING,
+                OpportunityStatus.UPCOMING,
+            }
+            and opp.apply_url
+            and opp.fact_confidence >= 0.75
+            and (opp.source_tier or 99) <= 2
+        ):
+            verification_status = "verified"
+        elif opp.output_status == OutputStatus.REJECTED or opp.status == OpportunityStatus.CLOSED:
+            verification_status = "rejected"
+
+        await self.db.execute(
+            """UPDATE social_monitoring_events
+               SET promoted_opportunity_id = ?, verification_status = ?
+               WHERE promoted_opportunity_id = ?""",
+            (opportunity_id, verification_status, opportunity_id),
+        )
+        await self.db.commit()
+
+    async def list_social_monitoring_events(
+        self,
+        verification_status: str | None = None,
+        limit: int = 100,
+    ) -> list[SocialMonitoringEvent]:
+        conditions: list[str] = []
+        params: list[Any] = []
+        if verification_status:
+            conditions.append("verification_status = ?")
+            params.append(verification_status)
+        where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+        params.append(limit)
+        cursor = await self.db.execute(
+            f"""SELECT * FROM social_monitoring_events
+                {where}
+                ORDER BY discovered_at DESC
+                LIMIT ?""",
+            params,
+        )
+        rows = await cursor.fetchall()
+        return [self._row_to_social_monitoring_event(row) for row in rows]
+
+    async def list_social_alert_candidates(
+        self,
+        limit: int = 20,
+    ) -> list[dict[str, Any]]:
+        """verified actionable social discoveries 중 아직 알리지 않은 후보."""
+        cursor = await self.db.execute(
+            """
+            SELECT
+                sme.id AS event_id,
+                sme.source_url,
+                sme.matched_account,
+                sme.matched_account_type,
+                sme.monitoring_round,
+                sme.organization AS social_organization,
+                sme.program AS social_program,
+                sme.signal_type,
+                sme.discovered_at,
+                o.id AS opportunity_id,
+                o.status,
+                o.apply_url,
+                o.fact_confidence,
+                o.source_tier,
+                o.deadline_at,
+                o.days_left,
+                p.display_name AS program_name,
+                p.program_url,
+                p.category,
+                org.display_name AS organization_name
+            FROM social_monitoring_events sme
+            JOIN opportunities o ON o.id = sme.promoted_opportunity_id
+            JOIN programs p ON p.id = o.program_id
+            JOIN organizations org ON org.id = p.org_id
+            WHERE sme.notified = FALSE
+              AND sme.verification_status = 'verified'
+              AND o.output_status = 'verified'
+              AND o.status IN ('open', 'rolling', 'upcoming')
+              AND o.apply_url IS NOT NULL
+              AND o.fact_confidence >= 0.75
+              AND (o.source_tier IS NULL OR o.source_tier <= 2)
+              AND (o.days_left IS NULL OR o.days_left >= 0)
+              AND (o.deadline_at IS NULL OR DATE(o.deadline_at) >= DATE('now', 'localtime'))
+            ORDER BY
+              CASE WHEN o.days_left IS NULL THEN 9999 ELSE o.days_left END ASC,
+              o.fact_confidence DESC,
+              sme.discovered_at DESC
+            LIMIT ?
+            """,
+            (limit,),
+        )
+        rows = await cursor.fetchall()
+        return [dict(row) for row in rows]
+
+    async def list_telegram_recipient_ids(self) -> list[int]:
+        """알림 전송 대상 Telegram 사용자 ID 목록."""
+        cursor = await self.db.execute(
+            """
+            SELECT DISTINCT telegram_user_id
+            FROM company_profiles
+            WHERE telegram_user_id IS NOT NULL
+            ORDER BY telegram_user_id ASC
+            """
+        )
+        rows = await cursor.fetchall()
+        return [int(row["telegram_user_id"]) for row in rows if row["telegram_user_id"] is not None]
+
+    async def mark_social_alerts_notified(
+        self,
+        event_ids: list[str],
+    ) -> None:
+        if not event_ids:
+            return
+        placeholders = ", ".join("?" for _ in event_ids)
+        await self.db.execute(
+            f"""UPDATE social_monitoring_events
+                SET notified = TRUE, notified_at = CURRENT_TIMESTAMP
+                WHERE id IN ({placeholders})""",
+            event_ids,
+        )
+        await self.db.commit()
+
+    def _row_to_social_monitoring_event(self, row: aiosqlite.Row) -> SocialMonitoringEvent:
+        return SocialMonitoringEvent(
+            id=row["id"],
+            source_url=row["source_url"],
+            matched_account=row["matched_account"] or "",
+            matched_account_type=row["matched_account_type"] or "",
+            monitoring_round=row["monitoring_round"] or "",
+            organization=row["organization"] or "",
+            program=row["program"] or "",
+            category=row["category"] or "",
+            signal_type=row["signal_type"] or "",
+            apply_url=row["apply_url"],
+            source_tier=row["source_tier"] or 5,
+            confidence=row["confidence"] or 0.0,
+            promoted_opportunity_id=row["promoted_opportunity_id"],
+            verification_status=row["verification_status"] or "pending",
+            notified=bool(row["notified"]),
+            discovered_at=_parse_dt(row["discovered_at"]),
+            notified_at=_parse_dt(row["notified_at"]),
+        )
+
+    # ============================================================
     # Application Endpoint CRUD
     # ============================================================
 
@@ -500,11 +811,40 @@ class EntityStore:
     ) -> list[ApplicationEndpoint]:
         """활성 엔드포인트 목록."""
         cursor = await self.db.execute(
-            "SELECT * FROM application_endpoints WHERE opportunity_id = ? AND is_active = TRUE",
+            """SELECT * FROM application_endpoints
+               WHERE opportunity_id = ? AND is_active = TRUE
+               ORDER BY verified_at DESC, created_at DESC, id DESC""",
             (opportunity_id,),
         )
         rows = await cursor.fetchall()
         return [self._row_to_endpoint(r) for r in rows]
+
+    async def sync_active_endpoints(
+        self,
+        opportunity_id: str,
+        active_urls: list[str],
+    ) -> None:
+        """기회별 active endpoint set을 현재 검증 결과와 동기화한다."""
+        normalized_urls = [url for url in dict.fromkeys(active_urls) if url]
+
+        if normalized_urls:
+            placeholders = ", ".join("?" for _ in normalized_urls)
+            await self.db.execute(
+                f"""UPDATE application_endpoints
+                    SET is_active = FALSE
+                    WHERE opportunity_id = ?
+                      AND is_active = TRUE
+                      AND url NOT IN ({placeholders})""",
+                (opportunity_id, *normalized_urls),
+            )
+        else:
+            await self.db.execute(
+                """UPDATE application_endpoints
+                   SET is_active = FALSE
+                   WHERE opportunity_id = ? AND is_active = TRUE""",
+                (opportunity_id,),
+            )
+        await self.db.commit()
 
     def _row_to_endpoint(self, row: aiosqlite.Row) -> ApplicationEndpoint:
         return ApplicationEndpoint(
@@ -525,15 +865,22 @@ class EntityStore:
         """사용자 프로필 생성."""
         await self.db.execute(
             """INSERT INTO company_profiles
-               (id, company_name, stage, sector_tags, projects, description, telegram_user_id)
-               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+               (id, company_name, stage, sector_tags, subsector_tags, projects,
+                description, geography, funding_goal, product_summary,
+                target_ecosystems, telegram_user_id)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 profile.id,
                 profile.company_name,
                 profile.stage.value if profile.stage else None,
                 serialize_json_field(profile.sector_tags),
+                serialize_json_field(profile.subsector_tags),
                 serialize_json_field(profile.projects),
                 profile.description,
+                profile.geography,
+                profile.funding_goal,
+                profile.product_summary,
+                serialize_json_field(profile.target_ecosystems),
                 profile.telegram_user_id,
             ),
         )
@@ -569,8 +916,12 @@ class EntityStore:
             return
         if "sector_tags" in fields and isinstance(fields["sector_tags"], list):
             fields["sector_tags"] = serialize_json_field(fields["sector_tags"])
+        if "subsector_tags" in fields and isinstance(fields["subsector_tags"], list):
+            fields["subsector_tags"] = serialize_json_field(fields["subsector_tags"])
         if "projects" in fields and isinstance(fields["projects"], list):
             fields["projects"] = serialize_json_field(fields["projects"])
+        if "target_ecosystems" in fields and isinstance(fields["target_ecosystems"], list):
+            fields["target_ecosystems"] = serialize_json_field(fields["target_ecosystems"])
         if "stage" in fields and isinstance(fields["stage"], CompanyStage):
             fields["stage"] = fields["stage"].value
         fields["updated_at"] = datetime.now().isoformat()
@@ -581,14 +932,40 @@ class EntityStore:
         )
         await self.db.commit()
 
+    async def delete_company_profile(self, profile_id: str) -> bool:
+        """프로필 삭제. 관련 fit_recommendations도 함께 정리."""
+        await self.db.execute(
+            "DELETE FROM fit_recommendations WHERE company_profile_id = ?",
+            (profile_id,),
+        )
+        cursor = await self.db.execute(
+            "DELETE FROM company_profiles WHERE id = ?",
+            (profile_id,),
+        )
+        await self.db.commit()
+        return (cursor.rowcount or 0) > 0
+
+    async def delete_profile_by_telegram_user(self, telegram_user_id: int) -> bool:
+        """Telegram 사용자 ID로 프로필 삭제."""
+        profile = await self.get_profile_by_telegram_user(telegram_user_id)
+        if profile is None:
+            return False
+        return await self.delete_company_profile(profile.id)
+
     def _row_to_profile(self, row: aiosqlite.Row) -> CompanyProfile:
+        keys = row.keys()
         return CompanyProfile(
             id=row["id"],
             company_name=row["company_name"],
             stage=CompanyStage(row["stage"]) if row["stage"] else None,
             sector_tags=deserialize_json_field(row["sector_tags"]) or [],
+            subsector_tags=deserialize_json_field(row["subsector_tags"]) or [] if "subsector_tags" in keys else [],
             projects=deserialize_json_field(row["projects"]) or [],
             description=row["description"],
+            geography=row["geography"] if "geography" in keys else None,
+            funding_goal=row["funding_goal"] if "funding_goal" in keys else None,
+            product_summary=row["product_summary"] if "product_summary" in keys else None,
+            target_ecosystems=deserialize_json_field(row["target_ecosystems"]) or [] if "target_ecosystems" in keys else [],
             telegram_user_id=row["telegram_user_id"],
             updated_at=_parse_dt(row["updated_at"]),
         )
@@ -603,8 +980,8 @@ class EntityStore:
             """INSERT INTO fit_recommendations
                (id, opportunity_id, company_profile_id, project_name,
                 fit_score, priority_score, why_fit, next_action,
-                urgency_score, expected_value, confidence)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                urgency_score, actionability_score, expected_value, confidence)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                ON CONFLICT(opportunity_id, company_profile_id)
                DO UPDATE SET
                 fit_score = excluded.fit_score,
@@ -612,6 +989,7 @@ class EntityStore:
                 why_fit = excluded.why_fit,
                 next_action = excluded.next_action,
                 urgency_score = excluded.urgency_score,
+                actionability_score = excluded.actionability_score,
                 expected_value = excluded.expected_value,
                 confidence = excluded.confidence,
                 computed_at = CURRENT_TIMESTAMP""",
@@ -625,6 +1003,7 @@ class EntityStore:
                 rec.why_fit,
                 rec.next_action,
                 rec.urgency_score,
+                rec.actionability_score,
                 rec.expected_value,
                 rec.confidence,
             ),
@@ -673,6 +1052,7 @@ class EntityStore:
             why_fit=row["why_fit"],
             next_action=row["next_action"],
             urgency_score=row["urgency_score"],
+            actionability_score=row["actionability_score"] if "actionability_score" in row.keys() else None,
             expected_value=row["expected_value"],
             confidence=row["confidence"],
             computed_at=_parse_dt(row["computed_at"]),

@@ -1,0 +1,2 @@
+timestamp	cycle	report_type	case_id	goal_type	recovery_mode	case_goal_met	overall_goal_met	stop_reason	progress_score	actionable_top10_count	output_ready_top10_count	profile_specific_recall	funding_map_coverage	dossier_fact_completeness	recommended_actions
+2026-03-12T06:28:36.816085+00:00	1	continuous_cycle	hoot_actionable_strategy	actionable_strategy	actionable_recovery	true	true	goal_met	1.0	5	7	0.6	0.375	0.0	

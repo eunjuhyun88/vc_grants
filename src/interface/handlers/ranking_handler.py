@@ -20,15 +20,16 @@ from src.interface.card_renderer import (
     render_error,
     render_ranked_list,
 )
-from src.interface.handlers.list_handler import _opportunities_to_cards
+from src.interface.opportunity_filters import filter_current_cards
 
 logger = structlog.get_logger()
 
 INTENT_TITLES: dict[str, str] = {
     "default": "⭐ 추천 순위",
     "urgent": "🔥 긴급 마감순",
-    "highest_money": "💰 펀딩 금액순",
-    "best_ecosystem_match": "🎯 생태계 매칭순",
+    "biggest_check": "💰 최대 펀딩순",
+    "ready_now": "🎯 즉시 지원 가능",
+    "best_fit": "🎯 최고 적합도순",
 }
 
 
@@ -43,10 +44,10 @@ async def ranking_command(
     intent_str = args[0].lower() if args else "default"
 
     # 유효한 intent인지 확인
-    valid_intents = {"default", "urgent", "highest_money", "best_ecosystem_match"}
+    valid_intents = {"default", "urgent", "biggest_check", "ready_now", "best_fit"}
     if intent_str not in valid_intents:
         usage = escape_md(
-            "사용법: /ranking [default|urgent|highest_money|best_ecosystem_match]"
+            "사용법: /ranking [default|urgent|biggest_check|ready_now|best_fit]"
         )
         await update.message.reply_text(usage, parse_mode="MarkdownV2")
         return
@@ -128,6 +129,14 @@ async def ranking_command(
                 next_action=mo.next_action,
             )
             cards.append(card)
+
+        cards = filter_current_cards(cards)
+        if not cards:
+            await update.message.reply_text(
+                escape_md("현재 지원 가능한 기회가 없습니다."),
+                parse_mode="MarkdownV2",
+            )
+            return
 
         title = INTENT_TITLES.get(intent_str, "⭐ 추천 순위")
         text = render_ranked_list(cards, title=title)

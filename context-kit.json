@@ -4,7 +4,7 @@
     "name": "VC_Grants",
     "slug": "vc-grants",
     "summary": "VC fundraising pipeline automation - search, apply, follow-up, and track investment deals",
-    "stack": "Svelte / TypeScript / Python",
+    "stack": "Python / SQLite / Telegram",
     "phase": "re-design",
     "deadline": "TBD"
   },
@@ -29,7 +29,7 @@
   {
     "id": "core",
     "label": "Core surface",
-    "summary": "Primary responsibilities for the core surface.",
+    "summary": "Telegram command surface for project registration, verified funding discovery, ranking, and alerts.",
     "spec": "docs/product-specs/core.md",
     "routes": [
       "/"

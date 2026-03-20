@@ -4,7 +4,7 @@
     "name": "VC_Grants",
     "slug": "vc-grants",
     "summary": "VC fundraising pipeline automation - search, apply, follow-up, and track investment deals",
-    "stack": "Svelte / TypeScript / Python",
+    "stack": "Python / SQLite / Telegram",
     "phase": "re-design",
     "deadline": "TBD"
   },
@@ -48,7 +48,7 @@
     {
       "id": "core",
       "label": "Core surface",
-      "summary": "Primary responsibilities for the core surface.",
+      "summary": "Telegram command surface for project registration, verified funding discovery, ranking, and alerts.",
       "spec": "docs/product-specs/core.md",
       "routes": [
         "/"
@@ -253,6 +253,11 @@
     {
       "name": "ctx:save",
       "script": "bash scripts/dev/context-save.sh",
+      "category": "ctx"
+    },
+    {
+      "name": "ctx:status",
+      "script": "bash scripts/dev/context-restore.sh --mode status",
       "category": "ctx"
     },
     {
@@ -581,8 +586,8 @@
   "retrieval": {
     "enabled": true,
     "indexPath": "docs/generated/contextual-retrieval-index.json",
-    "chunkCount": 154,
-    "sourceCount": 27,
+    "chunkCount": 595,
+    "sourceCount": 46,
     "sources": [
       {
         "path": "AGENTS.md",
@@ -630,93 +635,28 @@
         "authority": "canonical"
       },
       {
+        "path": "docs/design-docs/AGENT_CONTRACTS.md",
+        "role": "design-doc",
+        "authority": "canonical"
+      },
+      {
+        "path": "docs/design-docs/ARCHITECTURE.md",
+        "role": "design-doc",
+        "authority": "canonical"
+      },
+      {
+        "path": "docs/design-docs/AUTORESEARCH_ADOPTION.md",
+        "role": "design-doc",
+        "authority": "canonical"
+      },
+      {
         "path": "docs/design-docs/core-beliefs.md",
         "role": "design-doc",
         "authority": "canonical"
       },
       {
-        "path": "docs/design-docs/index.md",
+        "path": "docs/design-docs/DATA_FILL_SPEC.md",
         "role": "design-doc",
-        "authority": "canonical"
-      },
-      {
-        "path": "docs/DESIGN.md",
-        "role": "doc",
-        "authority": "tracked"
-      },
-      {
-        "path": "docs/ENGINEERING.md",
-        "role": "doc",
-        "authority": "tracked"
-      },
-      {
-        "path": "docs/HARNESS.md",
-        "role": "doc",
-        "authority": "tracked"
-      },
-      {
-        "path": "docs/MULTI_AGENT_COORDINATION.md",
-        "role": "coordination",
-        "authority": "canonical"
-      },
-      {
-        "path": "docs/PLANS.md",
-        "role": "doc",
-        "authority": "tracked"
-      },
-      {
-        "path": "docs/PRODUCT_SENSE.md",
-        "role": "doc",
-        "authority": "tracked"
-      },
-      {
-        "path": "docs/product-specs/core.md",
-        "role": "surface-spec",
-        "authority": "canonical"
-      },
-      {
-        "path": "docs/product-specs/index.md",
-        "role": "surface-spec",
-        "authority": "canonical"
-      },
-      {
-        "path": "docs/QUALITY_SCORE.md",
-        "role": "doc",
-        "authority": "tracked"
-      },
-      {
-        "path": "docs/RELIABILITY.md",
-        "role": "doc",
-        "authority": "tracked"
-      },
-      {
-        "path": "docs/SANDBOX_POLICY.md",
-        "role": "sandbox-policy",
-        "authority": "canonical"
-      },
-      {
-        "path": "docs/SECURITY.md",
-        "role": "doc",
-        "authority": "tracked"
-      },
-      {
-        "path": "docs/SYSTEM_INTENT.md",
-        "role": "doc",
-        "authority": "tracked"
-      },
-      {
-        "path": "docs/TOOL_DESIGN.md",
-        "role": "tool-design",
-        "authority": "canonical"
-      },
-      {
-        "path": "README.md",
-        "role": "root-router",
-        "authority": "canonical"
-      },
-      {
-        "path": "tools/README.md",
-        "role": "tool-contract",
         "authority": "canonical"
       }
     ]

@@ -1,0 +1,11 @@
+snapshots/
+COMPACT.md
+LATEST
+cron.log
+telegram_offset.txt
+telegram_bot.log
+telegram_stdout.log
+telegram_bot.pid
+telegram.env
+vc_ops.log
+!.gitignore

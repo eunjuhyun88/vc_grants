@@ -13,9 +13,7 @@ import argparse
 import asyncio
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
 from pathlib import Path
-from typing import Any
 
 import structlog
 
@@ -23,22 +21,14 @@ from src.agents.discovery import DiscoveryAgent
 from src.agents.matching import MatchingAgent
 from src.agents.verification import VerificationAgent
 from src.core.config import Config, config
-from src.core.errors import PipelineError
+from src.core.opportunity_ingestor import OpportunityIngestor
+from src.core.opportunity_matcher import OpportunityMatcher
+from src.core.opportunity_verifier import OpportunityVerifier
 from src.core.types import (
     DiscoveryInput,
-    MatchingInput,
-    Opportunity,
-    OpportunityStatus,
-    Organization,
-    OrgType,
-    OutputStatus,
-    Program,
     ProgramCategory,
-    VerificationInput,
-    extract_domain,
+    SocialMonitoringEvent,
     generate_id,
-    normalize_org_name,
-    normalize_url,
 )
 from src.db.entity_store import EntityStore
 
@@ -57,6 +47,7 @@ class PipelineResult:
     total_ingested: int = 0
     total_verified: int = 0
     total_matched: int = 0
+    ingested_opp_ids: list[str] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
     elapsed_ms: float = 0.0
 
@@ -96,6 +87,9 @@ class FundingPipeline:
         self.discovery = DiscoveryAgent(store, self.config)
         self.verification = VerificationAgent(store, self.config)
         self.matching = MatchingAgent(store, self.config)
+        self.ingestor = OpportunityIngestor(store)
+        self.opportunity_matcher = OpportunityMatcher(store, self.matching)
+        self.opportunity_verifier = OpportunityVerifier(store, self.verification)
         self.log = logger.bind(component="pipeline")
 
     async def run_discovery_pipeline(
@@ -104,6 +98,7 @@ class FundingPipeline:
         category: ProgramCategory | None = None,
         company_profile_id: str | None = None,
         sources: list[str] | None = None,
+        hint_queries: list[str] | None = None,
     ) -> PipelineResult:
         """전체 파이프라인 실행."""
         start = time.monotonic()
@@ -115,111 +110,29 @@ class FundingPipeline:
             category=category,
         )
 
-        # ============================================================
-        # Phase 1: Discovery
-        # ============================================================
-        try:
-            discovery_input = DiscoveryInput(
-                query=query,
-                category=category,
-                sources=sources or [],
-            )
-            discovery_result = await self.discovery.run(discovery_input)
+        raw_opps = await self._discover_raw_opportunities(
+            query=query,
+            category=category,
+            sources=sources or [],
+            hint_queries=hint_queries or [],
+            result=result,
+        )
+        ingested_opp_ids = await self._ingest_raw_opportunities(
+            raw_opps=raw_opps,
+            category=category,
+            result=result,
+        )
+        await self._verify_ingested_opportunities(
+            ingested_opp_ids=ingested_opp_ids,
+            result=result,
+        )
 
-            if discovery_result.success:
-                raw_opps = discovery_result.data.get("raw_opportunities", [])
-                result.total_discovered = len(raw_opps)
-                self.log.info("pipeline.discovery_done", count=len(raw_opps))
-            else:
-                result.errors.append(
-                    f"Discovery failed: {discovery_result.error}"
-                )
-                raw_opps = []
-
-        except Exception as e:
-            result.errors.append(f"Discovery error: {e}")
-            raw_opps = []
-
-        # ============================================================
-        # Phase 2: Ingest (Entity Resolution)
-        # ============================================================
-        ingested_opp_ids: list[str] = []
-        for raw_opp in raw_opps:
-            try:
-                opp_id = await self._ingest_raw_opportunity(raw_opp, category)
-                if opp_id:
-                    ingested_opp_ids.append(opp_id)
-                    result.total_ingested += 1
-            except Exception as e:
-                result.errors.append(
-                    f"Ingest error for {raw_opp.get('program', '?')}: {e}"
-                )
-                continue
-
-        self.log.info("pipeline.ingest_done", count=result.total_ingested)
-
-        # ============================================================
-        # Phase 3: Verification
-        # ============================================================
-        for opp_id in ingested_opp_ids:
-            try:
-                opp = await self.store.get_opportunity(opp_id)
-                if opp is None:
-                    continue
-
-                sources_for_verify: list[str] = []
-                if opp.apply_url:
-                    sources_for_verify.append(opp.apply_url)
-
-                # source_chain에서 추가 source
-                for src_url in opp.source_chain:
-                    if src_url not in sources_for_verify:
-                        sources_for_verify.append(src_url)
-
-                verify_input = VerificationInput(
-                    opportunity_id=opp_id,
-                    sources=sources_for_verify,
-                )
-                verify_result = await self.verification.run(verify_input)
-
-                if verify_result.success:
-                    result.total_verified += 1
-                else:
-                    result.errors.append(
-                        f"Verification failed for {opp_id}: {verify_result.error}"
-                    )
-
-            except Exception as e:
-                result.errors.append(f"Verification error for {opp_id}: {e}")
-                continue
-
-        self.log.info("pipeline.verification_done", count=result.total_verified)
-
-        # ============================================================
-        # Phase 4: Matching (프로필이 있을 때만)
-        # ============================================================
         if company_profile_id:
-            for opp_id in ingested_opp_ids:
-                try:
-                    match_input = MatchingInput(
-                        opportunity_id=opp_id,
-                        company_profile_id=company_profile_id,
-                        persist=True,
-                    )
-                    match_result = await self.matching.run(match_input)
-
-                    if match_result.success:
-                        result.total_matched += 1
-                    else:
-                        result.errors.append(
-                            f"Matching failed for {opp_id}: {match_result.error}"
-                        )
-
-                except Exception as e:
-                    result.errors.append(f"Matching error for {opp_id}: {e}")
-                    continue
-
-            self.log.info("pipeline.matching_done", count=result.total_matched)
+            await self._match_ingested_opportunities(
+                ingested_opp_ids=ingested_opp_ids,
+                company_profile_id=company_profile_id,
+                result=result,
+            )
 
         result.elapsed_ms = (time.monotonic() - start) * 1000
         self.log.info(
@@ -234,205 +147,179 @@ class FundingPipeline:
 
         return result
 
+    async def _discover_raw_opportunities(
+        self,
+        *,
+        query: str,
+        category: ProgramCategory | None,
+        sources: list[str],
+        hint_queries: list[str],
+        result: PipelineResult,
+    ) -> list[dict]:
+        try:
+            discovery_result = await self.discovery.run(
+                DiscoveryInput(
+                    query=query,
+                    category=category,
+                    sources=sources,
+                    hint_queries=hint_queries,
+                )
+            )
+        except Exception as exc:
+            result.errors.append(f"Discovery error: {exc}")
+            return []
+
+        if not discovery_result.success:
+            result.errors.append(f"Discovery failed: {discovery_result.error}")
+            return []
+
+        raw_opportunities = discovery_result.data.get("raw_opportunities", [])
+        result.total_discovered = len(raw_opportunities)
+        self.log.info("pipeline.discovery_done", count=len(raw_opportunities))
+        return raw_opportunities
+
+    async def _ingest_raw_opportunities(
+        self,
+        *,
+        raw_opps: list[dict],
+        category: ProgramCategory | None,
+        result: PipelineResult,
+    ) -> list[str]:
+        ingested_opp_ids: list[str] = []
+        for raw_opp in raw_opps:
+            try:
+                opp_id = await self.ingest_raw_opportunity(raw_opp, category)
+                if opp_id:
+                    await self._record_social_monitoring_event(raw_opp, opp_id)
+                    ingested_opp_ids.append(opp_id)
+                    result.total_ingested += 1
+            except Exception as exc:
+                result.errors.append(
+                    f"Ingest error for {raw_opp.get('program', '?')}: {exc}"
+                )
+
+        result.ingested_opp_ids = ingested_opp_ids.copy()
+        self.log.info("pipeline.ingest_done", count=result.total_ingested)
+        return ingested_opp_ids
+
+    async def _verify_ingested_opportunities(
+        self,
+        *,
+        ingested_opp_ids: list[str],
+        result: PipelineResult,
+    ) -> None:
+        outcomes = await self.opportunity_verifier.verify_batch(
+            ingested_opp_ids,
+            sync_social_status=True,
+            concurrency=1,
+        )
+        for outcome in outcomes:
+            if outcome.verified:
+                result.total_verified += 1
+            elif outcome.error:
+                result.errors.append(
+                    f"Verification failed for {outcome.opportunity_id}: {outcome.error}"
+                )
+
+        self.log.info("pipeline.verification_done", count=result.total_verified)
+
+    async def _match_ingested_opportunities(
+        self,
+        *,
+        ingested_opp_ids: list[str],
+        company_profile_id: str,
+        result: PipelineResult,
+    ) -> None:
+        outcomes = await self.opportunity_matcher.match_batch(
+            ingested_opp_ids,
+            company_profile_id,
+            concurrency=1,
+        )
+        for outcome in outcomes:
+            if outcome.matched:
+                result.total_matched += 1
+            elif outcome.error:
+                result.errors.append(
+                    f"Matching failed for {outcome.opportunity_id}: {outcome.error}"
+                )
+
+        self.log.info("pipeline.matching_done", count=result.total_matched)
+
+    async def ingest_raw_opportunity(
+        self,
+        raw: dict,
+        default_category: ProgramCategory | None = None,
+    ) -> str | None:
+        return await self.ingestor.ingest_raw_opportunity(
+            raw,
+            default_category=default_category,
+        )
+
+    async def _record_social_monitoring_event(
+        self,
+        raw: dict,
+        opportunity_id: str,
+    ) -> None:
+        if raw.get("source_type") != "social":
+            return
+        source_url = str(raw.get("source_url", "") or "").strip()
+        if not source_url:
+            return
+        event = SocialMonitoringEvent(
+            id=generate_id("sme_"),
+            source_url=source_url,
+            matched_account=str(raw.get("matched_account", "") or ""),
+            matched_account_type=str(raw.get("matched_account_type", "") or ""),
+            monitoring_round=str(raw.get("social_monitoring_round", "") or ""),
+            organization=str(raw.get("organization", "") or ""),
+            program=str(raw.get("program", "") or ""),
+            category=str(raw.get("category", "") or ""),
+            signal_type=str(raw.get("social_signal_type", "") or ""),
+            apply_url=raw.get("apply_url"),
+            source_tier=int(raw.get("source_tier", 5) or 5),
+            confidence=float(raw.get("confidence", 0.0) or 0.0),
+            promoted_opportunity_id=opportunity_id,
+            verification_status="pending",
+        )
+        await self.store.upsert_social_monitoring_event(event)
+
     async def _ingest_raw_opportunity(
         self,
         raw: dict,
         default_category: ProgramCategory | None = None,
     ) -> str | None:
-        """raw opportunity dict → Organization + Program + Opportunity 레코드."""
-        org_name = raw.get("organization", "").strip()
-        prog_name = raw.get("program", "").strip()
+        return await self.ingest_raw_opportunity(raw, default_category)
 
-        if not org_name or not prog_name:
-            return None
+    @staticmethod
+    def _infer_sector_tags(raw: dict) -> list[str]:
+        return OpportunityIngestor.infer_sector_tags(raw)
 
-        source_url = raw.get("source_url", "")
-        apply_url_raw = raw.get("apply_url")
+    @staticmethod
+    def _guess_org_type(raw: dict):
+        return OpportunityIngestor.guess_org_type(raw)
 
-        # 1. Organization 해결 (domain dedup 우선, name dedup 폴백)
-        normalized = normalize_org_name(org_name)
-        domain = extract_domain(source_url) or extract_domain(apply_url_raw)
-
-        org = None
-        if domain:
-            org = await self.store.get_organization_by_domain(domain)
-        if org is None:
-            org = await self.store.get_organization_by_name(normalized)
-
-        # focus_areas에서 sector_tags 추출
-        focus_areas = raw.get("focus_areas", [])
-        if not focus_areas or not isinstance(focus_areas, list):
-            focus_areas = self._infer_sector_tags(raw)
-
-        if org is None:
-            org = Organization(
-                id=generate_id("org_"),
-                normalized_name=normalized,
-                display_name=org_name,
-                domain=domain,
-                org_type=self._guess_org_type(raw),
-                sector_tags=focus_areas,
-            )
-            await self.store.create_organization(org)
-        else:
-            # 기존 org에 domain/sector_tags backfill
-            updates: dict = {}
-            if not org.domain and domain:
-                updates["domain"] = domain
-            if not org.sector_tags and focus_areas:
-                updates["sector_tags"] = focus_areas
-            if updates:
-                await self.store.update_organization(org.id, **updates)
-                if focus_areas:
-                    org.sector_tags = focus_areas
-
-        # 2. Program 해결 (dedup by org + normalized name)
-        prog_normalized = prog_name.lower().strip()
-        program = await self.store.get_program_by_org_and_name(
-            org.id, prog_normalized
-        )
-
-        if program is None:
-            cat_str = raw.get("category", "")
-            category = self._parse_category(cat_str, default_category)
-
-            program = Program(
-                id=generate_id("prg_"),
-                org_id=org.id,
-                normalized_name=prog_normalized,
-                display_name=prog_name,
-                category=category,
-                program_url=apply_url_raw,
-            )
-            await self.store.create_program(program)
-
-        # 3. Opportunity 생성
-        status = self._parse_status(raw.get("status", "unknown"))
-        deadline_at = self._parse_deadline(raw.get("deadline"))
-        budget_text = raw.get("budget")
-        budget_amount = self._parse_budget_amount(budget_text)
-
-        # source_chain: 모든 관련 URL 수집
-        source_chain: list[str] = []
-        if source_url:
-            source_chain.append(source_url)
-        if apply_url_raw and apply_url_raw not in source_chain:
-            source_chain.append(apply_url_raw)
-        if program.program_url and program.program_url not in source_chain:
-            source_chain.append(program.program_url)
-
-        opp = Opportunity(
-            id=generate_id("opp_"),
-            program_id=program.id,
-            status=status,
-            deadline_at=deadline_at,
-            budget_amount=budget_amount,
-            budget_note=budget_text,
-            apply_url=apply_url_raw,
-            output_status=OutputStatus.PENDING,
-            fact_confidence=0.0,
-            source_chain=source_chain,
-        )
-        await self.store.create_opportunity(opp)
-
-        return opp.id
-
-    def _infer_sector_tags(self, raw: dict) -> list[str]:
-        """raw data에서 sector tags 추론 (focus_areas 없을 때 fallback)."""
-        tags: list[str] = []
-        combined = " ".join([
-            raw.get("category", ""),
-            raw.get("description", ""),
-            raw.get("program", ""),
-            raw.get("organization", ""),
-        ]).lower()
-
-        keyword_map = {
-            "crypto": "crypto", "blockchain": "blockchain",
-            "web3": "web3", "defi": "defi", "nft": "nft",
-            "ai": "ai", "gaming": "gaming",
-            "infrastructure": "infrastructure",
-            "developer": "developer_tools",
-            "zk": "zero_knowledge", "layer": "layer",
-            "dao": "dao", "wallet": "wallets",
-        }
-
-        for keyword, tag in keyword_map.items():
-            if keyword in combined:
-                tags.append(tag)
-
-        return list(dict.fromkeys(tags))  # dedup 유지 순서
-
-    def _guess_org_type(self, raw: dict) -> OrgType:
-        """raw data에서 조직 유형 추측."""
-        cat = raw.get("category", "").lower()
-        if "vc" in cat or "cohort" in cat or "venture" in cat:
-            return OrgType.VC
-        if "accelerator" in cat:
-            return OrgType.ACCELERATOR
-        if "ecosystem" in cat:
-            return OrgType.ECOSYSTEM
-        return OrgType.FOUNDATION
-
+    @staticmethod
     def _parse_category(
-        self,
         cat_str: str,
         default: ProgramCategory | None,
     ) -> ProgramCategory:
-        """카테고리 문자열 → ProgramCategory."""
-        cat_map = {
-            "grant": ProgramCategory.GRANT,
-            "accelerator": ProgramCategory.ACCELERATOR,
-            "vc_cohort": ProgramCategory.VC_COHORT,
-            "ecosystem_builder": ProgramCategory.ECOSYSTEM_BUILDER,
-        }
-        return cat_map.get(cat_str.lower(), default or ProgramCategory.GRANT)
+        return OpportunityIngestor.parse_category(cat_str, default)
 
-    def _parse_status(self, status_str: str) -> OpportunityStatus:
-        """상태 문자열 → OpportunityStatus."""
-        status_map = {
-            "open": OpportunityStatus.OPEN,
-            "rolling": OpportunityStatus.ROLLING,
-            "deadline": OpportunityStatus.DEADLINE,
-            "upcoming": OpportunityStatus.UPCOMING,
-            "closed": OpportunityStatus.CLOSED,
-        }
-        return status_map.get(status_str.lower(), OpportunityStatus.UNKNOWN)
+    @staticmethod
+    def _parse_deadline(deadline_str: str | None):
+        return OpportunityIngestor.parse_deadline(deadline_str)
 
-    def _parse_deadline(self, deadline_str: str | None) -> datetime | None:
-        """마감일 문자열 → datetime."""
-        if not deadline_str:
-            return None
-        try:
-            return datetime.fromisoformat(deadline_str)
-        except (ValueError, TypeError):
-            return None
+    @staticmethod
+    def _parse_source_tier(value):
+        return OpportunityIngestor.parse_source_tier(value)
 
-    def _parse_budget_amount(self, budget_text: str | None) -> float | None:
-        """예산 텍스트에서 숫자 추출."""
-        if not budget_text:
-            return None
+    @staticmethod
+    def _parse_confidence(value) -> float:
+        return OpportunityIngestor.parse_confidence(value)
 
-        import re
-
-        # $500K, $50K-$500K, $1M 등 패턴
-        amounts: list[float] = []
-        for match in re.finditer(r"\$?([\d,.]+)\s*([KkMm])?", budget_text):
-            num_str = match.group(1).replace(",", "")
-            try:
-                num = float(num_str)
-            except ValueError:
-                continue
-
-            multiplier = match.group(2)
-            if multiplier and multiplier.upper() == "K":
-                num *= 1000
-            elif multiplier and multiplier.upper() == "M":
-                num *= 1000000
-            amounts.append(num)
-
-        # 최대값 반환 (범위의 경우)
-        return max(amounts) if amounts else None
+    @staticmethod
+    def _parse_budget_amount(budget_text: str | None) -> float | None:
+        return OpportunityIngestor.parse_budget_amount(budget_text)
 
 
 # ============================================================
@@ -446,12 +333,21 @@ async def main() -> None:
         description="Funding Intelligence Pipeline"
     )
     parser.add_argument(
-        "--query", type=str, required=True, help="검색 쿼리"
+        "--query", type=str, default="", help="검색 쿼리"
     )
     parser.add_argument(
         "--category",
         type=str,
-        choices=["grant", "accelerator", "vc_cohort", "ecosystem_builder"],
+        choices=[
+            "grant",
+            "accelerator",
+            "vc_cohort",
+            "fund",
+            "builder_program",
+            "residency",
+            "hackathon_pipeline",
+            "ecosystem_builder",
+        ],
         default=None,
         help="프로그램 카테고리",
     )
@@ -473,6 +369,8 @@ async def main() -> None:
     )
 
     args = parser.parse_args()
+    if not args.query and not args.seed:
+        parser.error("--query is required unless --seed is set")
 
     db_path = config.db_path
     db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -486,12 +384,52 @@ async def main() -> None:
         # 시드 데이터
         if args.seed:
             await store.init_schema()
-            seed_path = Path("data/seed/hoot_profile.json")
+            # seed_raw.json에서 프로그램 데이터 인제스트
+            seed_path = Path("data/seed_raw.json")
             if seed_path.exists():
-                profile_id = await store.load_seed_profile(seed_path)
-                print(f"Seed profile loaded: {profile_id}")
+                import json
+                with open(seed_path, encoding="utf-8") as f:
+                    seed_records = json.load(f)
+
+                pipeline = FundingPipeline(store=store)
+                ingested = 0
+                for rec in seed_records:
+                    # seed_raw.json 필드 → raw_opportunity 형식으로 변환
+                    raw_opp = {
+                        "organization": rec.get("organization", ""),
+                        "program": rec.get("program", ""),
+                        "category": rec.get("category", "grant"),
+                        "status": rec.get("status", "unknown"),
+                        "deadline": rec.get("deadline"),
+                        "budget": rec.get("funding_range") or rec.get("max_amount"),
+                        "apply_url": rec.get("apply_url"),
+                        "program_url": rec.get("program_url") or rec.get("website"),
+                        "description": rec.get("description", ""),
+                        "focus_areas": rec.get("sector_tags", []),
+                        "source_url": rec.get("website") or rec.get("apply_url") or "",
+                        "org_type": rec.get("org_type"),
+                        "source_tier": rec.get("source_tier"),
+                        "fact_confidence": rec.get("fact_confidence"),
+                    }
+                    try:
+                        cat = pipeline._parse_category(
+                            rec.get("category", "grant"), None
+                        )
+                        opp_id = await pipeline._ingest_raw_opportunity(
+                            raw_opp, cat
+                        )
+                        if opp_id:
+                            ingested += 1
+                    except Exception as e:
+                        print(f"  [WARN] Seed ingest failed: {rec.get('program', '?')}: {e}")
+
+                print(f"Seed data loaded: {ingested}/{len(seed_records)} records ingested")
             else:
                 print(f"Seed file not found: {seed_path}")
+                print("Run: python scripts/seed_importer.py --curated-csv output/spreadsheet/funding_sources_resolved.csv --output data/seed_raw.json")
+
+            if not args.query:
+                return
 
         # 파이프라인 실행
         category = ProgramCategory(args.category) if args.category else None

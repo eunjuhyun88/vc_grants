@@ -63,6 +63,7 @@ This generated manifest is the portable index for open-source discovery, local A
 | `ctx:pin` | ctx | `bash scripts/dev/context-pin.sh` |
 | `ctx:restore` | ctx | `bash scripts/dev/context-restore.sh` |
 | `ctx:save` | ctx | `bash scripts/dev/context-save.sh` |
+| `ctx:status` | ctx | `bash scripts/dev/context-restore.sh --mode status` |
 | `docs:check` | docs | `bash scripts/dev/check-docs-context.sh` |
 | `docs:refresh` | docs | `node scripts/dev/refresh-generated-context.mjs && node scripts/dev/refresh-context-retrieval.mjs && node scripts/dev/refresh-agent-catalog.mjs && node scripts/dev/refresh-tool-catalog.mjs && node scripts/dev/refresh-agent-usage-report.mjs && node scripts/dev/refresh-context-registry.mjs && node scripts/dev/refresh-context-ab-report.mjs && node scripts/dev/refresh-sandbox-policy-report.mjs && node scripts/dev/refresh-doc-governance.mjs && node scripts/dev/refresh-context-metrics.mjs && node scripts/dev/refresh-context-value-demo.mjs` |
 | `docs:refresh:check` | docs | `node scripts/dev/refresh-generated-context.mjs --check && node scripts/dev/refresh-context-retrieval.mjs --check && node scripts/dev/refresh-agent-catalog.mjs --check && node scripts/dev/refresh-tool-catalog.mjs --check && node scripts/dev/refresh-agent-usage-report.mjs --check && node scripts/dev/refresh-context-registry.mjs --check && node scripts/dev/refresh-context-ab-report.mjs --check && node scripts/dev/refresh-sandbox-policy-report.mjs --check && node scripts/dev/refresh-doc-governance.mjs --check && node scripts/dev/refresh-context-metrics.mjs --check && node scripts/dev/refresh-context-value-demo.mjs --check` |
@@ -108,8 +109,8 @@ This generated manifest is the portable index for open-source discovery, local A
 ## Retrieval
 
 - Retrieval enabled: `yes`
-- Indexed sources: `27`
-- Indexed chunks: `154`
+- Indexed sources: `46`
+- Indexed chunks: `595`
 
 ## Telemetry
 

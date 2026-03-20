@@ -91,3 +91,27 @@ class PipelineError(AgentError):
             fix=fix,
             context=context,
         )
+
+
+class SearchError(AgentError):
+    """Search 모듈 에러 (Agentic RAG)."""
+
+    def __init__(self, message: str, fix: str, context: dict[str, Any] | None = None):
+        super().__init__(
+            code="SEARCH_ERROR",
+            message=message,
+            fix=fix,
+            context=context,
+        )
+
+
+class MonitoringError(AgentError):
+    """Monitoring Agent 에러."""
+
+    def __init__(self, message: str, fix: str, context: dict[str, Any] | None = None):
+        super().__init__(
+            code="MONITORING_ERROR",
+            message=message,
+            fix=fix,
+            context=context,
+        )

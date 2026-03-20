@@ -1,5 +1,5 @@
 """
-Matching Agent 테스트 — fit/urgency/value/priority 계산 정확성.
+Matching Agent 테스트 — 5-factor priority 계산 정확성.
 
 실행: pytest tests/test_matching.py -v
 """
@@ -13,7 +13,9 @@ import pytest_asyncio
 
 from src.agents.matching import (
     MatchingAgent,
+    calculate_actionability_score,
     calculate_expected_value,
+    calculate_fit_assessment,
     calculate_fit_score,
     calculate_priority_score,
     calculate_urgency_score,
@@ -103,7 +105,7 @@ async def setup_data(store: EntityStore):
 
 
 # ============================================================
-# Urgency Score Tests (PRD 기준)
+# Urgency Score Tests (PRIORITY_ALGORITHM.md 기준)
 # ============================================================
 
 
@@ -114,26 +116,31 @@ def test_urgency_d0_3():
 
 
 def test_urgency_d4_7():
-    """D4-7 → 0.8"""
-    assert calculate_urgency_score(4, OpportunityStatus.OPEN) == 0.8
-    assert calculate_urgency_score(7, OpportunityStatus.OPEN) == 0.8
+    """D4-7 → 0.85"""
+    assert calculate_urgency_score(4, OpportunityStatus.OPEN) == 0.85
+    assert calculate_urgency_score(7, OpportunityStatus.OPEN) == 0.85
 
 
 def test_urgency_d8_14():
-    """D8-14 → 0.6"""
-    assert calculate_urgency_score(8, OpportunityStatus.OPEN) == 0.6
-    assert calculate_urgency_score(14, OpportunityStatus.OPEN) == 0.6
+    """D8-14 → 0.70"""
+    assert calculate_urgency_score(8, OpportunityStatus.OPEN) == 0.70
+    assert calculate_urgency_score(14, OpportunityStatus.OPEN) == 0.70
 
 
 def test_urgency_d15_30():
-    """D15-30 → 0.4"""
-    assert calculate_urgency_score(15, OpportunityStatus.OPEN) == 0.4
-    assert calculate_urgency_score(30, OpportunityStatus.OPEN) == 0.4
+    """D15-30 → 0.50"""
+    assert calculate_urgency_score(15, OpportunityStatus.OPEN) == 0.50
+    assert calculate_urgency_score(30, OpportunityStatus.OPEN) == 0.50
 
 
 def test_urgency_rolling():
-    """rolling → 0.3"""
-    assert calculate_urgency_score(None, OpportunityStatus.ROLLING) == 0.3
+    """rolling → 0.35"""
+    assert calculate_urgency_score(None, OpportunityStatus.ROLLING) == 0.35
+
+
+def test_urgency_upcoming():
+    """upcoming → 0.25"""
+    assert calculate_urgency_score(None, OpportunityStatus.UPCOMING) == 0.25
 
 
 def test_urgency_unknown():
@@ -187,66 +194,148 @@ def test_fit_score_no_tags():
     assert score == 0.0
 
 
+def test_fit_assessment_uses_text_and_ecosystem_context():
+    """기회 텍스트와 ecosystem context를 함께 보면 HOOT형 기회가 더 높게 나와야 한다."""
+    score, matched_terms = calculate_fit_assessment(
+        opp_tags=["web3", "infra"],
+        profile_tags=["ai_infra", "crypto_infra", "distributed_compute"],
+        project_tags=["agent_infra"],
+        opportunity_text=(
+            "Ethereum Ecosystem Support Program for AI infrastructure, "
+            "developer tooling, distributed compute, and blockchain coordination"
+        ),
+        target_ecosystems=["ethereum", "solana"],
+        subsector_tags=["small_model_training", "blockchain_compute"],
+        product_summary="Personal data-driven small model training with distributed compute",
+        stage_match=True,
+        program_category="grant",
+        funding_goal="grant,accelerator,seed_vc",
+        geography="global",
+    )
+
+    assert score >= 0.7
+    assert any(term in matched_terms for term in ("ethereum", "distributed compute", "ai infrastructure", "blockchain"))
+
+
 # ============================================================
-# Expected Value Tests
+# Expected Value Tests (dual: money*0.60 + strategic*0.40)
 # ============================================================
 
 
-def test_expected_value_high():
-    """$500K+ → 1.0"""
-    assert calculate_expected_value(500000) == 1.0
-    assert calculate_expected_value(1000000) == 1.0
+def test_expected_value_high_grant():
+    """$500K+ grant → money=1.0, strategic=0.5 → 0.6+0.2=0.8"""
+    score = calculate_expected_value(500000, "grant")
+    assert abs(score - 0.80) < 0.01
 
 
-def test_expected_value_medium():
-    """$200K → 0.8"""
-    assert calculate_expected_value(200000) == 0.8
+def test_expected_value_medium_accelerator():
+    """$200K accelerator → money=0.8, strategic=0.7 → 0.48+0.28=0.76"""
+    score = calculate_expected_value(200000, "accelerator")
+    assert abs(score - 0.76) < 0.01
 
 
-def test_expected_value_low():
-    """$50K → 0.4"""
-    assert calculate_expected_value(50000) == 0.4
+def test_expected_value_low_no_category():
+    """$50K no category → money=0.6, strategic=0.5(default) → 0.36+0.20=0.56"""
+    score = calculate_expected_value(50000)
+    assert abs(score - 0.56) < 0.01
 
 
 def test_expected_value_undisclosed():
-    """None → 0.3"""
-    assert calculate_expected_value(None) == 0.3
+    """None → money=0.3, strategic depends on category."""
+    score = calculate_expected_value(None)
+    # money=0.3*0.6 + strategic=0.5*0.4 = 0.18+0.20 = 0.38
+    assert abs(score - 0.38) < 0.01
 
 
 # ============================================================
-# Priority Score Tests (4-factor)
+# Actionability Score Tests
+# ============================================================
+
+
+def test_actionability_full():
+    """verified endpoint + open + stage match → 높은 점수."""
+    score = calculate_actionability_score(
+        has_apply_url=True,
+        has_verified_endpoint=True,
+        status=OpportunityStatus.OPEN,
+        stage_match=True,
+    )
+    assert score >= 0.8
+
+
+def test_actionability_minimal():
+    """no URL + closed + no match → 매우 낮은 점수."""
+    score = calculate_actionability_score(
+        has_apply_url=False,
+        has_verified_endpoint=False,
+        status=OpportunityStatus.CLOSED,
+        stage_match=False,
+    )
+    assert score <= 0.2
+
+
+# ============================================================
+# Priority Score Tests (5-factor)
 # ============================================================
 
 
 def test_priority_default_weights():
-    """기본 가중치: 0.35 + 0.35 + 0.15 + 0.15"""
+    """기본 가중치: fit*0.35 + urgency*0.25 + actionability*0.20 + ev*0.10 + conf*0.10"""
     score = calculate_priority_score(
-        fit=0.8, urgency=0.6, value=0.5, confidence=0.9
+        fit=0.8, urgency=0.6, actionability=0.7,
+        expected_value=0.5, confidence=0.9,
     )
-    # 0.8*0.35 + 0.6*0.35 + 0.5*0.15 + 0.9*0.15
-    # = 0.28 + 0.21 + 0.075 + 0.135 = 0.70
-    assert abs(score - 0.70) < 0.01
+    # 0.8*0.35 + 0.6*0.25 + 0.7*0.20 + 0.5*0.10 + 0.9*0.10
+    # = 0.28 + 0.15 + 0.14 + 0.05 + 0.09 = 0.71
+    assert abs(score - 0.71) < 0.01
 
 
 def test_priority_urgent_weights():
-    """urgent: urgency 가중치 0.50"""
-    default = calculate_priority_score(0.5, 1.0, 0.5, 0.5, "default")
-    urgent = calculate_priority_score(0.5, 1.0, 0.5, 0.5, "urgent")
+    """urgent: urgency 가중치 0.45"""
+    default = calculate_priority_score(0.5, 1.0, 0.5, 0.5, 0.5, "default")
+    urgent = calculate_priority_score(0.5, 1.0, 0.5, 0.5, 0.5, "urgent")
     assert urgent > default  # urgency 높으면 urgent가 더 높아야 함
 
 
-def test_priority_highest_money_weights():
-    """highest_money: value 가중치 0.50"""
-    default = calculate_priority_score(0.5, 0.5, 1.0, 0.5, "default")
-    money = calculate_priority_score(0.5, 0.5, 1.0, 0.5, "highest_money")
+def test_priority_biggest_check_weights():
+    """biggest_check: expected_value 가중치 0.45"""
+    default = calculate_priority_score(0.5, 0.5, 0.5, 1.0, 0.5, "default")
+    money = calculate_priority_score(0.5, 0.5, 0.5, 1.0, 0.5, "biggest_check")
     assert money > default
 
 
-def test_priority_best_ecosystem_weights():
-    """best_ecosystem_match: fit 가중치 0.50"""
-    default = calculate_priority_score(1.0, 0.5, 0.5, 0.5, "default")
-    eco = calculate_priority_score(1.0, 0.5, 0.5, 0.5, "best_ecosystem_match")
-    assert eco > default
+def test_priority_best_fit_weights():
+    """best_fit: fit 가중치 0.50"""
+    default = calculate_priority_score(1.0, 0.5, 0.5, 0.5, 0.5, "default")
+    fit = calculate_priority_score(1.0, 0.5, 0.5, 0.5, 0.5, "best_fit")
+    assert fit > default
+
+
+def test_priority_ready_now_weights():
+    """ready_now: actionability 가중치 0.35"""
+    default = calculate_priority_score(0.5, 0.5, 1.0, 0.5, 0.5, "default")
+    ready = calculate_priority_score(0.5, 0.5, 1.0, 0.5, 0.5, "ready_now")
+    assert ready > default
+
+
+def test_find_best_project_prefers_lowest_priority_when_overlap_ties(cfg: Config):
+    agent = MatchingAgent(store=None, config=cfg)  # type: ignore[arg-type]
+    profile = CompanyProfile(
+        id="cp_projects",
+        company_name="Projects Inc",
+        stage=CompanyStage.MVP,
+        sector_tags=["ai_infra"],
+        projects=[
+            {"name": "HOOT", "priority": 1, "tags": ["ai_infra", "distributed_compute"]},
+            {"name": "StockClaw", "priority": 2, "tags": ["crypto_analytics"]},
+            {"name": "ClawGene", "priority": 5, "tags": ["physical_ai"]},
+        ],
+    )
+
+    best_name, best_tags = agent._find_best_project(profile, opp_tags=["unmatched"])
+
+    assert best_name == "HOOT"
+    assert best_tags == ["ai_infra", "distributed_compute"]
 
 
 # ============================================================
@@ -269,7 +358,8 @@ async def test_matching_agent_run(store: EntityStore, cfg: Config, setup_data):
     assert result.data["opportunity_id"] == "opp_test"
     assert result.data["fit_score"] > 0
     assert result.data["priority_score"] > 0
-    assert result.data["urgency_score"] == 0.8  # days_left=5 → D4-7
+    assert result.data["urgency_score"] == 0.85  # days_left=5 → D4-7 → 0.85
+    assert result.data["actionability_score"] > 0
     assert result.data["why_fit"] != ""
     assert result.data["next_action"] != ""
 

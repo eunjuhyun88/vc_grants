@@ -6,10 +6,12 @@
 2. `docs/design-docs/ARCHITECTURE.md` — 시스템 아키텍처
 3. `docs/design-docs/DB_SCHEMA.md` — 데이터베이스 스키마
 4. `docs/design-docs/AGENT_CONTRACTS.md` — 7 Agent I/O 계약
-5. `docs/design-docs/OUTPUT_RULES.md` — Telegram 출력 규칙
-6. `docs/design-docs/ENTITY_MODEL.md` — Entity 분류·Dedup 규칙
-7. `docs/design-docs/PRIORITY_ALGORITHM.md` — 우선순위 계산 로직
-8. `docs/exec-plans/active/*.md` — 진행 중 작업
+5. `docs/design-docs/TELEGRAM_UX.md` — Telegram 명령, 대화, 알림 UX 계약
+6. `docs/design-docs/OUTPUT_RULES.md` — Telegram 출력 규칙
+7. `docs/design-docs/OPERATIONS_MODEL.md` — discovery, verification, alert 운영 모델
+8. `docs/design-docs/ENTITY_MODEL.md` — Entity 분류·Dedup 규칙
+9. `docs/design-docs/PRIORITY_ALGORITHM.md` — 우선순위 계산 로직
+10. `docs/exec-plans/active/*.md` — 진행 중 작업
 
 ## 핵심 설계 결정
 

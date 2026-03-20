@@ -9,7 +9,18 @@ CURATED_VIEW_SQL = """
 SELECT
     o.id, o.status, o.deadline_at, o.days_left,
     o.budget_amount, o.budget_currency, o.budget_note,
-    o.apply_url, o.output_status, o.fact_confidence, o.source_tier,
+    COALESCE(
+        (
+            SELECT ep.url
+            FROM application_endpoints ep
+            WHERE ep.opportunity_id = o.id
+              AND ep.is_active = 1
+            ORDER BY ep.verified_at DESC, ep.id DESC
+            LIMIT 1
+        ),
+        o.apply_url
+    ) AS apply_url,
+    o.output_status, o.fact_confidence, o.source_tier,
     p.display_name AS program_name,
     p.category,
     org.display_name AS org_name,
@@ -26,13 +37,26 @@ LEFT JOIN fit_recommendations fr
 WHERE
     o.output_status = 'verified'
     AND o.fact_confidence >= :min_confidence
-    AND o.source_tier <= 2
-    AND o.apply_url IS NOT NULL
+    AND o.source_tier <= 4
+    AND EXISTS (
+        SELECT 1
+        FROM application_endpoints ep
+        WHERE ep.opportunity_id = o.id
+          AND ep.is_active = 1
+    )
     AND o.status != 'closed'
+    AND (o.days_left IS NULL OR o.days_left >= 0)
+    AND (o.deadline_at IS NULL OR DATE(o.deadline_at) >= DATE('now', 'localtime'))
 """
 
 CURATED_VIEW_CATEGORY_FILTER = """
     AND p.category = :category
+"""
+
+# Display bucket 기반 필터 (IN 절 사용)
+# entity_store에서 동적으로 placeholders를 채운다
+CURATED_VIEW_DISPLAY_BUCKET_FILTER_TEMPLATE = """
+    AND p.category IN ({placeholders})
 """
 
 CURATED_VIEW_ORDER = """
